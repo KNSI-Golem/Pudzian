@@ -2,14 +2,16 @@ import bpy
 import csv
 import os
 
-folder_path = os.getcwd(_)
-filename = os.path.join(folder_path, "animate/pose_points/animate_test.csv")
+folder_path = os.getcwd()
+filename = os.path.join(folder_path, "src/assets/animate_test.csv")
 
 obj = bpy.context.active_object
 
-name = "c_hand_ik.l"
 
-pb = obj.pose.bones.get(name)
+obj = bpy.data.objects["rig"]
+
+
+pb = obj.pose.bones.get("c_foot_ik.r")
 
 with open(filename, newline='') as file:
     reader = csv.reader(file, delimiter=",")
