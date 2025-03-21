@@ -2,6 +2,7 @@
 
 :root {
   --tealblue: #6D959E;
+  --dark: #434343;
 }
 
 body {
@@ -11,4 +12,14 @@ body {
 .navbar {
   background: var(--tealblue);
   color: white;
+}
+
+.button {
+  background: var(--dark);
+  color: white;
+}
+
+.button:hover {
+  background: white;
+  color: var(--dark);
 }
