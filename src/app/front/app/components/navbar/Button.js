@@ -1,13 +1,14 @@
 import React from 'react';
+import Link from 'next/link';
 
-const Button = ({ onClick, children = "Sign in" }) => {
+const Button = ({ href = "/login", children = "Sign in" }) => {
   return (
-    <button
-      onClick={onClick}
-      className="px-4 py-2 rounded-lg button transition cursor-pointer"
+    <Link
+      href={href}
+      className="px-4 py-2 rounded-lg button transition cursor-pointer inline-block text-center"
     >
       {children}
-    </button>
+    </Link>
   );
 };
 
