@@ -12,8 +12,8 @@ const Navbar = () => {
             <Logo />
             <div className="flex items-center gap-x-15 text-white font-sans">
               <ul className="hidden md:flex gap-x-15">
-                <li><Link href="/"><p>Home</p></Link></li>
-                <li><Link href="/about"><p>About</p></Link></li>
+                <li><Link href="/">Home</Link></li>
+                <li><Link href="/about">About</Link></li>
               </ul>
               <Button />
             </div>
