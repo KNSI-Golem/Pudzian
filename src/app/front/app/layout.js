@@ -1,5 +1,6 @@
+import Navigation from "./components/navbar";
 import { geistMono, geistSans } from "./fonts";
-import "./globals.css";
+import './globals.css';
 
 export const metadata = {
   title: "GolemVR",
@@ -10,6 +11,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Navigation />
         {children}
       </body>
     </html>
