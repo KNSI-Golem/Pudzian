@@ -15,16 +15,36 @@ const Footer = () => {
 
             {/* Social icons */}
             <div className="flex gap-4 mt-4 text-xl text-gray-400">
-              <a href="#" className="hover:text-gray-600">
+              <a
+                href="https://www.facebook.com/knsigolem"
+                className="hover:text-gray-600"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaFacebook />
               </a>
-              <a href="#" className="hover:text-gray-600">
+              <a
+                href="https://www.linkedin.com/company/artificial-intelligence-society-golem"
+                className="hover:text-gray-600"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaLinkedin />
               </a>
-              <a href="#" className="hover:text-gray-600">
+              <a
+                href="https://www.youtube.com/@knsigolem4058"
+                className="hover:text-gray-600"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaYoutube />
               </a>
-              <a href="#" className="hover:text-gray-600">
+              <a
+                href="https://www.instagram.com/knsi_golem/"
+                className="hover:text-gray-600"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaInstagram />
               </a>
             </div>
