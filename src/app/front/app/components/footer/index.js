@@ -4,8 +4,8 @@ import { FaFacebook, FaLinkedin, FaYoutube, FaInstagram } from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-white text-gray-800 py-8 border-t">
-      <div className="container mx-auto px-60">
+    <footer className="w-full bg-white text-gray-800 py-8">
+      <div className="container mx-auto px-60 border-t pt-8 border-gray-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           
           {/* Left side (Logo / Text) */}
