@@ -1,12 +1,11 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --tealblue: #6D959E;
   --dark: #434343;
-}
-
-body {
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .navbar {
@@ -22,4 +21,12 @@ body {
 .button:hover {
   background: white;
   color: var(--dark);
+}
+
+p {
+  color: #6b7280;
+}
+
+h1 {
+  @apply text-3xl font-bold mb-4
 }
