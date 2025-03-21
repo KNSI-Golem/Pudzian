@@ -1,9 +1,9 @@
-import { geistSans } from "./fonts";
+import myVideo from '/videos/get-started.mp4';
+import HowItWorks from "./components/how-it-works";
+import Video from 'next-video';
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(80vh-140px)] px-4 py-8">
-        <h1 className={`${geistSans.className}`}>Hello World</h1>
-    </div>
+      <HowItWorks />
   );
 }
