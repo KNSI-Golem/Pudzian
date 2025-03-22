@@ -8,8 +8,8 @@ const Logo = () => {
       <Image
         src="/logo.svg"
         alt="Logo"
-        width={140}
-        height={60}
+        width={210}
+        height={90}
         priority
       />
     </Link>

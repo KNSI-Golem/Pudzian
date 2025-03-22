@@ -16,12 +16,19 @@
 .button {
   background: var(--dark);
   color: white;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.2s ease;
 }
 
 .button:hover {
-  background: white;
-  color: var(--dark);
+  background: #1f2937; /* dark gray on hover */
 }
+
 
 p {
   color: #6b7280;

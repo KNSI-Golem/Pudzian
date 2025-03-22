@@ -1,13 +1,9 @@
-import myVideo from '/videos/get-started.mp4';
-import HowItWorks from "./components/how-it-works";
-import VideoUpload from "./components/video-upload";
-import Video from 'next-video';
+import VideoSection from "./components/video-section";
 
 export default function Home() {
   return (
-    <div>
-      <HowItWorks />
-      <VideoUpload />
+    <div className="flex justify-center items-center bg-gray-50 px-4">
+        <VideoSection />
     </div>
   );
 }
