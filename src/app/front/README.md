@@ -23,12 +23,6 @@ S3_BUCKET_NAME=pudzian-dev
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) in your browser to see it in action.
