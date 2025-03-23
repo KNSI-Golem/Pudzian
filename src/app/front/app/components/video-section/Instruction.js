@@ -1,9 +1,9 @@
 export default function Instruction() {
     return (
-      <section className="max-w-5xl mx-auto px-4 py-15 text-center">
-        <h2 className="text-2xl sm:text-3xl font-semibold mb-15">
+      <section className="max-w-5xl mx-auto px-4 text-center">
+        <h1 className="text-2xl sm:text-3xl font-semibold mb-15">
           Upload a video to transform into the Golem
-        </h2>
+        </h1>
   
         <div className="flex flex-col md:flex-row items-center justify-between gap-10">
           {/* Step 1: Before */}
