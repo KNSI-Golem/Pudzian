@@ -2,15 +2,43 @@
 
 import React, { useRef, useState } from 'react';
 
-const UploadButton = () => {
-  const [videoSrc, setVideoSrc] = useState('');
+const UploadButton = ({ onUploadSuccess }) => {
+  const [status, setStatus] = useState('');
   const fileInputRef = useRef(null);
 
-  const handleVideoUpload = (event) => {
+  const handleVideoUpload = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const videoUrl = URL.createObjectURL(file);
-      setVideoSrc(videoUrl);
+    if (!file) return;
+
+    setStatus('Requesting upload URL...');
+
+    try {
+      const res = await fetch(
+        `/api/upload-url?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`
+      );
+
+      if (!res.ok) throw new Error('Failed to get signed URL');
+
+      const { putUrl, getUrl, filename } = await res.json();
+
+      setStatus('Uploading to S3...');
+
+      const uploadRes = await fetch(putUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) throw new Error('Upload to S3 failed');
+
+      setStatus('✅ Upload complete!');
+
+      onUploadSuccess(getUrl)
+    } catch (error) {
+      console.error(error);
+      setStatus('❌ Upload failed.');
     }
   };
 
@@ -19,29 +47,21 @@ const UploadButton = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center m-10">
-      <div className="p-6 flex flex-col items-center">
-        <button
-          onClick={triggerFileInput}
-          className="w-72 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-6 rounded button"
-        >
-          Upload
-        </button>
-
-        <input
-          type="file"
-          accept="video/*"
-          onChange={handleVideoUpload}
-          ref={fileInputRef}
-          className="hidden"
-        />
-
-        {videoSrc && (
-          <div className="mt-6">
-            <video controls src={videoSrc} className="max-w-md rounded-lg shadow" />
-          </div>
-        )}
-      </div>
+    <div className="flex flex-col items-center mt-10">
+      <button
+        onClick={triggerFileInput}
+        className="w-72 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-6 rounded button"
+      >
+        Upload
+      </button>
+      <input
+        type="file"
+        accept="video/*"
+        onChange={handleVideoUpload}
+        ref={fileInputRef}
+        className="hidden"
+      />
+      {status && <p className="mt-4 text-sm text-gray-700">{status}</p>}
     </div>
   );
 };
