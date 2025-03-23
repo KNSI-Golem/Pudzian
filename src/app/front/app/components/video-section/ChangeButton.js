@@ -4,6 +4,7 @@ async function handleChange(onChange, url) {
   try {
     const parsedUrl = new URL(url);
     const key = parsedUrl.pathname.replace(/^\/+/, '');
+    onChange();
 
     const res = await fetch('/api/delete-video', {
       method: 'POST',
@@ -16,8 +17,6 @@ async function handleChange(onChange, url) {
 
   } catch (error) {
     console.error(error);
-  } finally {
-    onChange()
   }
 }
 
