@@ -1,0 +1,21 @@
+<svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Light video frame background -->
+  <rect x="0" y="0" width="400" height="250" rx="12" fill="#f9fafb" />
+
+  <!-- Simplified black Golem silhouette -->
+  <path d="M100 200 L120 140 L110 120 L130 100 L150 140 L160 100 L180 100 L190 130 L210 120 L200 170 L220 200 Z"
+        fill="#000" stroke="#000" stroke-width="2" />
+
+  <!-- Eyes -->
+  <circle cx="145" cy="130" r="3" fill="#fff" />
+  <circle cx="165" cy="130" r="3" fill="#fff" />
+
+  <!-- Play Button -->
+  <circle cx="200" cy="125" r="30" fill="#e5e7eb" />
+  <polygon points="190,110 215,125 190,140" fill="#111827" />
+
+  <!-- Progress Bar -->
+  <rect x="40" y="220" width="320" height="8" rx="4" fill="#d1d5db" />
+  <rect x="40" y="220" width="150" height="8" rx="4" fill="#0ea5e9" />
+  <circle cx="190" cy="224" r="6" fill="#0ea5e9" />
+</svg>
