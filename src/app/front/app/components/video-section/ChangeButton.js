@@ -1,36 +1,31 @@
 'use client';
 
-async function handleChange(onChange, url) {
-  try {
-    const parsedUrl = new URL(url);
-    const key = parsedUrl.pathname.replace(/^\/+/, '');
-    onChange();
+import { useState } from "react";
 
-    const res = await fetch('/api/delete-video', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key }),
-    });
+const ChangeButton = ({ onStart, onStop }) => {
+  const [isStreaming, setIsStreaming] = useState(false);
 
-    if (!res.ok) throw new Error('Failed to delete file');
-    console.log('File deleted!');
+  const handleClick = () => {
+    if (isStreaming) {
+      onStop();
+    } else {
+      onStart();
+    }
+    setIsStreaming(!isStreaming);
+  };
 
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-const ChangeButton = (({ url, onChange }) => {
-    return (
-        <div className="flex flex-col items-center mt-10">
-          <button
-            onClick={ () => { handleChange(onChange, url) } }
-            className="w-50 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-6 rounded button"
-          >
-            Change
-          </button>
-        </div>
-      );
-})
+  return (
+    <div className="flex flex-col items-center mt-10">
+      <button
+        onClick={handleClick}
+        className={`w-50 ${
+          isStreaming ? "bg-red-500 hover:bg-red-600" : "bg-teal-500 hover:bg-teal-600"
+        } text-white font-semibold py-2 px-6 rounded button`}
+      >
+        {isStreaming ? "Stop" : "Start"}
+      </button>
+    </div>
+  );
+};
 
 export default ChangeButton;
