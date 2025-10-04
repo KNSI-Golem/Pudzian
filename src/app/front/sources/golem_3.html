@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koło Naukowe AI GOLEM - Cyber Golem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Czcionka Orbitron inspirowana stylem Kimberley -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Definicja palety kolorów "Cyber Golem" */
+        :root {
+            --main-bg: #3a3a46;
+            --secondary-bg: #2c2c34; /* Ciemniejszy odcień dla paneli */
+            --accent-1: #97afb3; /* Turkusowy */
+            --accent-2: #797992; /* Poboczny jaśniejszy */
+            --text-color: #f0f0f0;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--main-bg);
+            color: var(--text-color);
+            background-image: radial-gradient(var(--accent-2) 0.5px, transparent 0.5px);
+            background-size: 15px 15px;
+            overflow-x: hidden;
+        }
+        
+        /* Styl czcionki "Cyber Golem" */
+        .font-golem {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* Kontener dla widoków wideo/placeholderów */
+        .view-panel {
+            background-color: rgba(44, 44, 52, 0.8);
+            border: 1px solid var(--accent-1);
+            box-shadow: 0 0 20px rgba(151, 175, 179, 0.15);
+            backdrop-filter: blur(5px);
+        }
+
+        /* Animacja "budzenia się" - skanowanie */
+        .scan-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-1), transparent);
+            animation: scan 3s infinite linear;
+            box-shadow: 0 0 10px var(--accent-1);
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        /* Styl przycisku */
+        .golem-button {
+            font-family: 'Orbitron', sans-serif;
+            background-color: transparent;
+            border: 2px solid var(--accent-1);
+            color: var(--accent-1);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .golem-button:hover {
+            background-color: var(--accent-1);
+            color: var(--main-bg);
+            box-shadow: 0 0 15px var(--accent-1);
+        }
+        
+        .interactive-panel {
+            cursor: pointer;
+        }
+        
+        #left-panel, #right-panel {
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- NAVBAR PLACEHOLDER -->
+    <header class="w-full p-4 border-b border-[var(--accent-1)]/20 sticky top-0 z-10" style="background-color: rgba(58, 58, 70, 0.8); backdrop-filter: blur(8px);">
+        <div class="container mx-auto flex items-center">
+            <div class="flex flex-col items-start">
+                 <h1 class="font-golem text-3xl font-bold tracking-widest text-white">GOLEM</h1>
+                 <p class="font-golem text-xs text-gray-400 tracking-wider -mt-1">KOŁO NAUKOWE SZTUCZNEJ INTELIGENCJI</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- GŁÓWNA ZAWARTOŚĆ -->
+    <main class="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
+        <div id="content-grid" class="w-full grid grid-cols-1 lg:grid-cols-11 gap-8 items-stretch">
+            
+            <!-- LEWY PANEL: KAMERA UŻYTKOWNIKA -->
+            <div id="left-panel" class="lg:col-span-5 h-[60vh] flex flex-col rounded-lg view-panel">
+                <div id="initial-left" class="flex flex-col items-center justify-center text-center p-8 h-full">
+                    <h2 class="font-golem text-2xl mb-4 text-white">INTERFEJS UŻYTKOWNIKA</h2>
+                    <p class="text-[var(--accent-2)] mb-8 max-w-sm">
+                        Zsynchronizuj swój biometryczny obraz z siecią. System wygeneruje Twoje cyfrowe alter ego - Cyber Golema.
+                    </p>
+                    <button id="activate-btn" class="golem-button py-3 px-8 rounded-md">
+                        Inicjuj proces
+                    </button>
+                </div>
+                <div id="camera-view" class="hidden w-full h-full bg-black rounded-lg flex items-center justify-center">
+                    <video id="video-feed" class="w-full h-full object-cover rounded-lg" autoplay playsinline></video>
+                    <div id="camera-placeholder" class="text-center">
+                        <svg class="w-16 h-16 text-gray-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.55a1 1 0 011.45.89V14a1 1 0 01-1.45.89L15 12M4 6h11a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"></path></svg>
+                        <p class="mt-2 text-gray-500">STRUMIEŃ WIDEO</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRAWY PANEL: TRANSFORMACJA W GOLEMA -->
+            <div id="right-panel" class="lg:col-span-6 h-[60vh] flex flex-col rounded-lg view-panel">
+                <div id="initial-right" class="flex flex-col items-center justify-center h-full p-8 scan-container">
+                     <h2 class="font-golem text-2xl mb-6 text-white">RDZEŃ AI</h2>
+                     <svg class="w-40 h-40 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6a6 6 0 100 12 6 6 0 000-12z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9a3 3 0 100 6 3 3 0 000-6z"></path>
+                     </svg>
+                     <div class="scan-line"></div>
+                     <p class="text-gray-400 mt-8 text-sm tracking-widest">SYSTEM W GOTOWOŚCI</p>
+                </div>
+                <div id="golem-view" class="hidden w-full h-full bg-black rounded-lg flex items-center justify-center">
+                    <div class="text-center">
+                        <svg class="mx-auto" width="160" height="180" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50 0 L85 30 L85 90 L50 120 L15 90 L15 30 Z" stroke="var(--accent-1)" stroke-width="2"/>
+                            <circle cx="50" cy="45" r="10" stroke="var(--accent-1)" stroke-width="2"/>
+                            <path d="M50 55 V 75" stroke="var(--accent-1)" stroke-width="2"/>
+                            <path d="M35 80 H 65" stroke="var(--accent-1)" stroke-width="2"/>
+                        </svg>
+                        <p class="font-golem mt-4 text-xl text-[var(--accent-1)]">CYBER GOLEM</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER PLACEHOLDER -->
+    <footer class="w-full p-4 mt-8">
+        <div class="container mx-auto text-center text-sm text-gray-500">
+            <p>&copy; 2024 Koło Naukowe Sztucznej Inteligencji GOLEM.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const activateBtn = document.getElementById('activate-btn');
+            const initialLeft = document.getElementById('initial-left');
+            const cameraView = document.getElementById('camera-view');
+            const initialRight = document.getElementById('initial-right');
+            const golemView = document.getElementById('golem-view');
+            const leftPanel = document.getElementById('left-panel');
+            const rightPanel = document.getElementById('right-panel');
+            const videoFeed = document.getElementById('video-feed');
+            const cameraPlaceholder = document.getElementById('camera-placeholder');
+
+            let panelsAreInteractive = false;
+
+            async function startCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    videoFeed.srcObject = stream;
+                    videoFeed.classList.remove('hidden');
+                    cameraPlaceholder.classList.add('hidden');
+                } catch (err) {
+                    console.error("Błąd dostępu do kamery:", err);
+                    videoFeed.classList.add('hidden');
+                    cameraPlaceholder.classList.remove('hidden');
+                }
+            }
+
+            activateBtn.addEventListener('click', () => {
+                initialLeft.classList.add('hidden');
+                cameraView.classList.remove('hidden');
+                startCamera();
+
+                setTimeout(() => {
+                    initialRight.classList.add('hidden');
+                    golemView.classList.remove('hidden');
+                    panelsAreInteractive = true;
+                    leftPanel.classList.add('interactive-panel');
+                    rightPanel.classList.add('interactive-panel');
+                }, 1500);
+            });
+
+            function toggleFocus(focusedPanel, otherPanel) {
+                if (!panelsAreInteractive) return;
+
+                const isFocused = focusedPanel.classList.contains('lg:col-span-8');
+
+                if (isFocused) {
+                    // Wróć do stanu początkowego
+                    leftPanel.classList.remove('lg:col-span-8', 'lg:col-span-3');
+                    leftPanel.classList.add('lg:col-span-5');
+                    rightPanel.classList.remove('lg:col-span-3', 'lg:col-span-8');
+                    rightPanel.classList.add('lg:col-span-6');
+                } else {
+                    // Ustaw focus na kliknięty panel
+                    focusedPanel.classList.remove('lg:col-span-5', 'lg:col-span-6', 'lg:col-span-3');
+                    focusedPanel.classList.add('lg:col-span-8');
+                    otherPanel.classList.remove('lg:col-span-5', 'lg:col-span-6', 'lg:col-span-8');
+                    otherPanel.classList.add('lg:col-span-3');
+                }
+            }
+            
+            leftPanel.addEventListener('click', () => toggleFocus(leftPanel, rightPanel));
+            rightPanel.addEventListener('click', () => toggleFocus(rightPanel, leftPanel));
+        });
+    </script>
+
+</body>
+</html>
+
