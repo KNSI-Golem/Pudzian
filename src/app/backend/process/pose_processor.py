@@ -15,7 +15,7 @@ class PoseProcessor:
 
         cap = cv.VideoCapture(filename)
 
-        model_path = os.path.join("process", "pose_landmarker_full.task")
+        model_path = os.path.join("assets", "mediapipe", "pose_landmarker_full.task")
 
         base_options = python.BaseOptions(model_asset_path=model_path)
         options = vision.PoseLandmarkerOptions(
