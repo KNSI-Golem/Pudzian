@@ -1,103 +1,84 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import VideoStream from '../components/VideoStream';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [showInitialView, setShowInitialView] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleActivate = () => {
+    setShowInitialView(false);
+    setIsStreaming(true);
+  };
+
+  useEffect(() => {
+    const generateAwakeningCells = () => {
+      const cells = [];
+      for (let i = 0; i < 100; i++) {
+        cells.push(
+          <div 
+            key={i} 
+            style={{ animationDelay: `${Math.random() * 2}s` }} 
+          />
+        );
+      }
+      return cells;
+    };
+
+    if (showInitialView) {
+      const awakeningGrid = document.querySelector('.golem-awakening-grid');
+      if (awakeningGrid) {
+        awakeningGrid.innerHTML = '';
+        generateAwakeningCells().forEach(cell => {
+          const div = document.createElement('div');
+          div.style.animationDelay = `${Math.random() * 2}s`;
+          awakeningGrid.appendChild(div);
+        });
+      }
+    }
+  }, [showInitialView]);
+
+  return (
+    <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-11 gap-8 items-stretch">
+        
+        <div className="lg:col-span-5 h-[60vh] flex flex-col rounded-lg view-panel transition-all duration-500">
+          {showInitialView ? (
+            <div className="flex flex-col items-center justify-center text-center p-8 h-full">
+              <h2 className="font-golem text-2xl mb-4 text-white">TWOJA PERSPEKTYWA</h2>
+              <p className="text-gray-300 mb-8 max-w-sm">
+                Aby rozpocząć, zezwól na dostęp do kamery. Nasz model sztucznej inteligencji przetworzy obraz w czasie rzeczywistym i stworzy Twoją cyfrową wersję Golema.
+              </p>
+              <button 
+                onClick={handleActivate}
+                className="golem-button py-3 px-8 rounded-lg font-golem"
+              >
+                Aktywuj Golema
+              </button>
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <VideoStream isStreaming={isStreaming} />
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="lg:col-span-6 h-[60vh] flex flex-col rounded-lg view-panel transition-all duration-500">
+          {showInitialView ? (
+            <div className="flex flex-col items-center justify-center h-full p-8">
+              <h2 className="font-golem text-2xl mb-4 text-white">GOLEM CZEKA</h2>
+              <div className="golem-awakening-grid w-48 h-48 opacity-50"></div>
+              <p className="text-gray-400 mt-8 text-sm">Inicjalizacja modelu...</p>
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <VideoStream isStreaming={isStreaming} />
+            </div>
+          )}
+        </div>
+
+      </div>
+    </main>
   );
 }
