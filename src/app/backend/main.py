@@ -3,7 +3,6 @@ from uuid import uuid4
 import boto3
 from botocore.exceptions import ClientError
 from fastapi import FastAPI, UploadFile, status, HTTPException, Response
-from tinydb import TinyDB
 from .config import Settings
 from functools import lru_cache
 import logging
@@ -16,7 +15,6 @@ KB = 1024
 MB = 1024 * KB
 
 app = FastAPI()
-db = TinyDB('data/db.json')
 logger = logging.getLogger(__name__)
 
 
