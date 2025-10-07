@@ -2,8 +2,8 @@
  * Application constants
  */
 export const APP_CONFIG = {
-  name: "GOLEM",
-  fullName: "KOŁO NAUKOWE SZTUCZNEJ INTELIGENCJI",
+  name: "GOLEM VR",
+  fullName: "KOŁO NAUKOWE SZTUCZNEJ INTELIGENCJI GOLEM",
   version: "1.0.0",
 } as const;
 

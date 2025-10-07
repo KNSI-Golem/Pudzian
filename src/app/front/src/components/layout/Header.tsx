@@ -8,15 +8,14 @@ export function Header() {
             style={{ backgroundColor: '#3a3a46cc' }}>
       <div className="container mx-auto flex items-center gap-4">
         <Image
-          src="/logo.png"
+          src="/logo.svg"
           alt="GOLEM Logo"
           width={50}
           height={50}
-          className="rounded"
         />
         <div className="flex flex-col items-start">
           <h1 className="font-golem text-3xl font-bold tracking-widest text-white">
-            {APP_CONFIG.name}
+            Golem VR
           </h1>
           <p className="font-golem text-xs text-gray-300 -mt-1">
             {APP_CONFIG.fullName}
