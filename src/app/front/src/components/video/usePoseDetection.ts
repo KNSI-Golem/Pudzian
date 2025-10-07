@@ -37,7 +37,6 @@ export function usePoseDetection({
       return;
     }
 
-    // Set canvas dimensions to match video
     canvasElement.width = videoElement.videoWidth;
     canvasElement.height = videoElement.videoHeight;
 

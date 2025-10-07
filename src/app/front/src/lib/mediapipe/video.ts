@@ -6,9 +6,7 @@ export const DEFAULT_VIDEO_CONFIG: VideoStreamConfig = {
   facingMode: "user",
 };
 
-/**
- * Gets user media stream with specified configuration
- */
+
 export async function getUserMediaStream(config: Partial<VideoStreamConfig> = {}): Promise<MediaStream> {
   const finalConfig = { ...DEFAULT_VIDEO_CONFIG, ...config };
   
@@ -27,9 +25,7 @@ export async function getUserMediaStream(config: Partial<VideoStreamConfig> = {}
   }
 }
 
-/**
- * Stops all tracks in a media stream
- */
+
 export function stopMediaStream(stream: MediaStream | null): void {
   if (stream) {
     const tracks = stream.getTracks();
@@ -37,9 +33,7 @@ export function stopMediaStream(stream: MediaStream | null): void {
   }
 }
 
-/**
- * Checks if the browser supports required media APIs
- */
+
 export function checkMediaSupport(): { supported: boolean; error?: string } {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     return {

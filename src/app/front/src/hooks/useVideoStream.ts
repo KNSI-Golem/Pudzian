@@ -10,9 +10,7 @@ interface UseVideoStreamReturn {
   stopStream: () => void;
 }
 
-/**
- * Custom hook for managing video stream from user camera
- */
+
 export function useVideoStream(config?: Partial<VideoStreamConfig>): UseVideoStreamReturn {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isActive, setIsActive] = useState(false);

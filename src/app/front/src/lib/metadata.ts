@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 
-/**
- * Generates metadata for Next.js pages
- */
+
 export function generatePageMetadata(
   title: string,
   description: string,
@@ -15,11 +13,9 @@ export function generatePageMetadata(
   };
 }
 
-/**
- * App-specific metadata constants
- */
+
 export const METADATA = {
   DEFAULT_TITLE: "Koło Naukowe AI GOLEM",
-  DEFAULT_DESCRIPTION: "Sztuczna inteligencja i rozpoznawanie postawy ciała",
-  KEYWORDS: ["AI", "Sztuczna Inteligencja", "MediaPipe", "Rozpoznawanie Postawy", "Computer Vision"],
+  DEFAULT_DESCRIPTION: "Sztuczna inteligencja i detekcja pozy",
+  KEYWORDS: ["AI", "Sztuczna Inteligencja", "MediaPipe", "Detekcja pozy", "Computer Vision"],
 } as const;

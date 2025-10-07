@@ -5,9 +5,7 @@ export function cn(...inputs: (string | undefined | null | false)[]): string {
   return inputs.filter(Boolean).join(' ');
 }
 
-/**
- * Debounce function for performance optimization
- */
+
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
@@ -20,16 +18,12 @@ export function debounce<T extends (...args: any[]) => any>(
   };
 }
 
-/**
- * Generate random delay for animation staggering
- */
+
 export function randomDelay(max: number = 2): string {
   return `${Math.random() * max}s`;
 }
 
-/**
- * Format error messages for user display
- */
+
 export function formatErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;

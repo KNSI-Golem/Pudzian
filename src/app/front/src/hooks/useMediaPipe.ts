@@ -3,9 +3,7 @@ import { PoseLandmarker } from "@mediapipe/tasks-vision";
 import { createPoseLandmarker, handleMediaPipeError } from "@/lib/mediapipe";
 import type { MediaPipeHookReturn, MediaPipeConfig } from "@/types";
 
-/**
- * Custom hook for managing MediaPipe PoseLandmarker
- */
+
 export function useMediaPipe(config?: Partial<MediaPipeConfig>): MediaPipeHookReturn {
   const [poseLandmarker, setPoseLandmarker] = useState<PoseLandmarker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
