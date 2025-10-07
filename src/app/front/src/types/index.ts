@@ -1,5 +1,4 @@
-// Re-export all types for easy importing
-export type { 
+export type {
   MediaPipeConfig,
   PoseDetectionResult,
   VideoStreamConfig,
