@@ -14,8 +14,6 @@ export function ModelViewer({
   const { mountRef, isLoading, error, model } = useThreeScene({
     modelPath: isActive ? modelPath : undefined,
     enableControls: true,
-    autoRotate: false,
-    backgroundColor: '#3a3a46'
   });
 
   const lastErrorRef = useRef<string | null>(null);

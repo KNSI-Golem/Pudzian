@@ -7,22 +7,17 @@ import type { ModelViewerRef, ModelLoadResult } from '@/types';
 export interface UseThreeSceneOptions {
   modelPath?: string;
   enableControls?: boolean;
-  autoRotate?: boolean;
-  backgroundColor?: string;
 }
 
 export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const {
     modelPath,
-    enableControls = true,
-    autoRotate = false,
-    backgroundColor = '#3a3a46'
+    enableControls = true
   } = options;
 
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<ModelViewerRef | null>(null);
   const animationIdRef = useRef<number | undefined>(undefined);
-  const clockRef = useRef<THREE.Clock>(new THREE.Clock());
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,43 +31,29 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     const width = rect.width;
     const height = rect.height;
 
-    // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(backgroundColor);
+    scene.background = new THREE.Color(0x333333);
 
-    // Camera setup
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 1, 3);
+    camera.position.set(0, 170, 120);
 
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ 
-      antialias: true, 
-      alpha: true 
-    });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-    // Lighting setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
-
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 5, 5);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.setScalar(1024);
+    directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
-    // Controls setup
     let controls: OrbitControls | undefined;
     if (enableControls) {
       controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.autoRotate = false; // Disable auto-rotate to avoid conflicts
-      controls.autoRotateSpeed = 0;
+      controls.target.set(0, 170, 0);
+      controls.minDistance = 80;
+      controls.maxDistance = 200;
+      controls.minPolarAngle = Math.PI * 0.3;
+      controls.maxPolarAngle = Math.PI * 0.7;
     }
 
     mountRef.current.appendChild(renderer.domElement);
@@ -84,9 +65,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       controls
     };
 
-  }, [backgroundColor, enableControls, autoRotate]);
+  }, [enableControls]);
 
-  // Load GLTF model with fallback cube
+  // Load GLTF model
   const loadModel = useCallback(async (path: string) => {
     if (!sceneRef.current) return;
 
@@ -94,79 +75,29 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     setError(null);
 
     try {
-      // Clear previous model
       setModel((currentModel) => {
         if (currentModel?.gltf && sceneRef.current) {
           sceneRef.current.scene.remove(currentModel.gltf.scene);
         }
-        if (currentModel?.mesh && sceneRef.current) {
-          sceneRef.current.scene.remove(currentModel.mesh);
-        }
         return null;
       });
 
-      // Try to load GLTF file
       const loader = new GLTFLoader();
       const gltf = await new Promise<any>((resolve, reject) => {
         loader.load(path, resolve, undefined, reject);
       });
 
-      // Add model to scene
-      const modelScene = gltf.scene;
-      
-      // Center and scale the model
-      const box = new THREE.Box3().setFromObject(modelScene);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const scale = 2 / maxDim;
-      
-      modelScene.position.copy(center).multiplyScalar(-scale);
-      modelScene.scale.setScalar(scale);
-      
-      sceneRef.current.scene.add(modelScene);
+      const model = gltf.scene;
+      sceneRef.current.scene.add(model);
 
-      // Setup animations if present
-      let mixer: THREE.AnimationMixer | undefined;
-      if (gltf.animations && gltf.animations.length > 0) {
-        mixer = new THREE.AnimationMixer(modelScene);
-        gltf.animations.forEach((clip: THREE.AnimationClip) => {
-          mixer!.clipAction(clip).play();
-        });
-        sceneRef.current.mixer = mixer;
-      }
-
-      setModel({ gltf, mixer });
+      setModel({ gltf });
       setIsLoading(false);
 
     } catch (err) {
-      // If GLTF loading fails, create a fallback cube
-      console.warn('GLTF loading failed, creating fallback cube:', err);
-      
-      try {
-        // Create a simple animated cube as fallback
-        const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-        const material = new THREE.MeshStandardMaterial({ 
-          color: 0x4a90e2,
-          metalness: 0.2,
-          roughness: 0.4
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(0, 0, 0);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        
-        sceneRef.current.scene.add(mesh);
-        setModel({ mesh });
-        setIsLoading(false);
-        setError(null); // Clear error since we have a fallback
-        
-      } catch (fallbackErr) {
-        const errorMessage = fallbackErr instanceof Error ? fallbackErr.message : 'Failed to create fallback model';
-        setError(errorMessage);
-        setIsLoading(false);
-      }
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load 3D model';
+      console.error('Model loading error:', err);
+      setError(errorMessage);
+      setIsLoading(false);
     }
   }, []);
 
@@ -174,29 +105,14 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const animate = useCallback(() => {
     if (!sceneRef.current) return;
 
-    const delta = clockRef.current.getDelta();
-    
-    // Update mixer for GLTF animations
-    if (sceneRef.current.mixer) {
-      sceneRef.current.mixer.update(delta);
-    }
-
-    // Rotate fallback cube if present (when no GLTF animations)
-    if (model?.mesh && !sceneRef.current.mixer) {
-      model.mesh.rotation.x += delta * 0.5;
-      model.mesh.rotation.y += delta * 0.3;
-    }
-
-    // Update controls
     if (sceneRef.current.controls) {
       sceneRef.current.controls.update();
     }
 
-    // Render scene
     sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
     
     animationIdRef.current = requestAnimationFrame(animate);
-  }, [model]);
+  }, []);
 
   // Handle resize
   const handleResize = useCallback(() => {

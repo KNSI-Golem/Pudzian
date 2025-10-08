@@ -17,7 +17,5 @@ export interface ModelViewerRef {
 }
 
 export interface ModelLoadResult {
-  gltf?: any; // GLTF type from loader
-  mesh?: THREE.Mesh; // Simple mesh for basic geometry
-  mixer?: THREE.AnimationMixer;
+  gltf: any;
 }

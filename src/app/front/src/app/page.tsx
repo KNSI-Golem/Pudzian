@@ -72,7 +72,7 @@ export default function Home() {
             </div>
           ) : (
             <ModelViewer 
-              modelPath="/models/cube.gltf"
+              modelPath="/models/result.gltf"
               isActive={uiState.isStreaming}
               onError={handleError}
             />
