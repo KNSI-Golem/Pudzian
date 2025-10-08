@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { VideoStream } from '@/components/video';
+import { useState, useCallback } from 'react';
+import { VideoStream, ModelViewer } from '@/components/video';
 import { Button, ViewPanel, AwakeningGrid } from '@/components/ui';
 import type { GolemUIState } from '@/types';
 
@@ -13,27 +13,33 @@ export default function Home() {
     error: null,
   });
 
-  const handleActivate = () => {
+  const handleActivate = useCallback(() => {
     setUIState(prev => ({
       ...prev,
       showInitialView: false,
       isStreaming: true,
     }));
-  };
+  }, []);
 
-  const handleError = (error: string) => {
-    setUIState(prev => ({
-      ...prev,
-      error,
-      isLoading: false,
-    }));
-  };
+  const handleError = useCallback((error: string) => {
+    setUIState(prev => {
+      // Only update if the error is different to prevent loops
+      if (prev.error !== error) {
+        return {
+          ...prev,
+          error,
+          isLoading: false,
+        };
+      }
+      return prev;
+    });
+  }, []);
 
   return (
     <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
-      <div className="w-full grid grid-cols-1 lg:grid-cols-11 gap-8 items-stretch">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
         
-        <ViewPanel className="lg:col-span-5 h-[60vh]">
+        <ViewPanel className="aspect-[4/3]">
           {uiState.showInitialView ? (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
               <h2 className="font-golem text-2xl mb-4 text-white">TWOJA PERSPEKTYWA</h2>
@@ -57,16 +63,17 @@ export default function Home() {
           )}
         </ViewPanel>
 
-        <ViewPanel className="lg:col-span-6 h-[60vh]">
+        <ViewPanel className="aspect-[4/3]">
           {uiState.showInitialView ? (
             <div className="flex flex-col items-center justify-center h-full p-8">
               <h2 className="font-golem text-2xl mb-4 text-white">GOLEM CZEKA</h2>
               <AwakeningGrid />
-              <p className="text-gray-400 mt-8 text-sm">Inicjalizacja modelu...</p>
+              <p className="text-gray-400 mt-8 text-sm">...</p>
             </div>
           ) : (
-            <VideoStream 
-              isStreaming={uiState.isStreaming}
+            <ModelViewer 
+              modelPath="/models/cube.gltf"
+              isActive={uiState.isStreaming}
               onError={handleError}
             />
           )}

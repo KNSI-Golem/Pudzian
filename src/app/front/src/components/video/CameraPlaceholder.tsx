@@ -19,21 +19,16 @@ export function CameraIcon() {
 }
 
 interface CameraPlaceholderProps {
-  width?: number;
-  height?: number;
   message?: string;
+  className?: string;
 }
 
 export function CameraPlaceholder({ 
-  width = 640, 
-  height = 480, 
-  message = "CAMERA FEED" 
+  message = "CAMERA FEED",
+  className = ""
 }: CameraPlaceholderProps) {
   return (
-    <div
-      className="rounded shadow flex items-center justify-center bg-black text-white font-bold"
-      style={{ width: `${width}px`, height: `${height}px` }}
-    >
+    <div className={`w-full h-full rounded shadow flex items-center justify-center bg-black text-white font-bold ${className}`}>
       <div className="text-center">
         <CameraIcon />
         <p className="text-gray-400">{message}</p>

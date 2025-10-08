@@ -14,3 +14,9 @@ export type {
   ViewPanelProps,
   AwakeningGridProps
 } from './ui';
+
+export type {
+  ModelViewerProps,
+  ModelViewerRef,
+  ModelLoadResult
+} from './three';

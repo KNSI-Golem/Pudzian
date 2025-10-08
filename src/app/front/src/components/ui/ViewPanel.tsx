@@ -13,7 +13,7 @@ export function ViewPanel({ children, title, className }: ViewPanelProps) {
           <h2 className="font-golem text-xl text-white">{title}</h2>
         </div>
       )}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 overflow-hidden">
         {children}
       </div>
     </div>

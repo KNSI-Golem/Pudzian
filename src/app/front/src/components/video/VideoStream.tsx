@@ -62,7 +62,7 @@ export function VideoStream({
   // Show loading state
   if (isStreaming && (isMediaPipeLoading || !poseLandmarker)) {
     return (
-      <div className={`flex flex-col items-center justify-center ${className}`}>
+      <div className={`w-full h-full ${className}`}>
         <CameraPlaceholder message="INITIALIZING MEDIAPIPE..." />
       </div>
     );
@@ -71,7 +71,7 @@ export function VideoStream({
   // Show error state
   if (streamError || mediaPipeError) {
     return (
-      <div className={`flex flex-col items-center justify-center ${className}`}>
+      <div className={`w-full h-full flex flex-col items-center justify-center ${className}`}>
         <CameraPlaceholder message="CAMERA ERROR" />
         <p className="text-red-400 text-sm mt-2 max-w-md text-center">
           {formatErrorMessage(streamError || mediaPipeError)}
@@ -81,7 +81,7 @@ export function VideoStream({
   }
 
   return (
-    <div className={`flex flex-col items-center justify-center ${className}`}>
+    <div className={`w-full h-full ${className}`}>
       {isStreaming && stream ? (
         <VideoCanvas
           videoRef={videoRef}

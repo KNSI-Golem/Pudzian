@@ -4,16 +4,12 @@ interface VideoCanvasProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   stream: MediaStream | null;
-  width?: number;
-  height?: number;
 }
 
 export function VideoCanvas({ 
   videoRef, 
   canvasRef, 
-  stream, 
-  width = 640, 
-  height = 480 
+  stream
 }: VideoCanvasProps) {
   
   useEffect(() => {
@@ -23,25 +19,21 @@ export function VideoCanvas({
   }, [stream, videoRef]);
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-full">
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        className="rounded shadow"
+        className="absolute inset-0 w-full h-full object-cover rounded shadow"
         style={{ 
-          width: `${width}px`,
-          height: `${height}px`,
           backgroundColor: "#000",
           transform: "scaleX(-1)"
         }}
       />
       <canvas
         ref={canvasRef}
-        className="absolute left-0 top-0 rounded shadow"
+        className="absolute inset-0 w-full h-full rounded shadow"
         style={{
-          width: `${width}px`,
-          height: `${height}px`,
           transform: "scaleX(-1)"
         }}
       />
