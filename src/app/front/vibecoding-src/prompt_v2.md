@@ -1,1 +1,0 @@
-please modularize and refactor the src dir, which is nextjs project, read thoroughly the #file:nextjs-docs.txt , follow those rules and informations strictly, also check docs of mediapipe using context7mcp, its your mcp server.
