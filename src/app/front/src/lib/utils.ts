@@ -23,7 +23,6 @@ export function randomDelay(max: number = 2): string {
   return `${Math.random() * max}s`;
 }
 
-
 export function formatErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;

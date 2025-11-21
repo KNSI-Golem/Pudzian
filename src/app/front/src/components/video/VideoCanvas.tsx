@@ -26,7 +26,7 @@ export function VideoCanvas({
         playsInline
         className="absolute inset-0 w-full h-full object-cover rounded shadow"
         style={{ 
-          backgroundColor: "#000",
+          backgroundColor: "#2d2d37",
           transform: "scaleX(-1)"
         }}
       />

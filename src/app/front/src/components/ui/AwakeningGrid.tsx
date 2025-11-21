@@ -3,8 +3,8 @@ import { cn, randomDelay } from '@/lib/utils';
 import type { AwakeningGridProps } from '@/types';
 
 export function AwakeningGrid({
-  cellCount = 100,
-  animationDelay = 2,
+  cellCount = 80,
+  animationDelay = 3,
   className
 }: AwakeningGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -13,10 +13,8 @@ export function AwakeningGrid({
     const grid = gridRef.current;
     if (!grid) return;
 
-    // Clear existing cells
     grid.innerHTML = '';
 
-    // Generate animated cells
     for (let i = 0; i < cellCount; i++) {
       const cell = document.createElement('div');
       cell.style.animationDelay = randomDelay(animationDelay);
@@ -28,7 +26,7 @@ export function AwakeningGrid({
     <div
       ref={gridRef}
       className={cn(
-        "golem-awakening-grid w-48 h-48 opacity-50",
+        "golem-awakening-grid w-50 h-50 opacity-50",
         className
       )}
     />
