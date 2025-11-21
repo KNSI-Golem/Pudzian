@@ -37,15 +37,3 @@ export interface DrawingConfig {
   landmarkColor: string;
   connectionWidth: number;
 }
-
-export interface PoseAnalysis {
-  isGoodPosture: boolean;
-  confidence: number;
-  issues: PostureIssue[];
-}
-
-export interface PostureIssue {
-  type: 'head_tilt' | 'shoulder_alignment' | 'back_curve' | 'hip_alignment';
-  severity: 'low' | 'medium' | 'high';
-  description: string;
-}

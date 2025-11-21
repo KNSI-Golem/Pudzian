@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { PoseLandmarker } from '@mediapipe/tasks-vision';
 import { drawPoseLandmarks, clearCanvas, createDrawingUtils } from '@/lib/mediapipe';
-import { VIDEO_CONSTRAINTS } from '@/lib/constants';
 import type { PoseDetectionResult } from '@/types';
 
 interface PoseDetectionProps {

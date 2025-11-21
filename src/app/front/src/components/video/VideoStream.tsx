@@ -4,9 +4,9 @@ import React, { useRef, useEffect } from 'react';
 import { useMediaPipe, useVideoStream } from '@/hooks';
 import { VIDEO_CONSTRAINTS } from '@/lib/constants';
 import { formatErrorMessage } from '@/lib/utils';
-import { VideoCanvas } from './VideoCanvas';
-import { CameraPlaceholder } from './CameraPlaceholder';
-import { usePoseDetection } from './usePoseDetection';
+import { VideoCanvas } from '@/components';
+import { CameraPlaceholder } from '@/components';
+import { usePoseDetection } from '@/components';
 
 interface VideoStreamProps {
   isStreaming: boolean;
@@ -21,11 +21,9 @@ export function VideoStream({
 }: VideoStreamProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // MediaPipe hook
+
   const { poseLandmarker, isLoading: isMediaPipeLoading, error: mediaPipeError } = useMediaPipe();
-  
-  // Video stream hook
+
   const { 
     stream, 
     isActive, 
@@ -34,7 +32,6 @@ export function VideoStream({
     stopStream 
   } = useVideoStream(VIDEO_CONSTRAINTS);
 
-  // Pose detection hook
   const { startDetection, stopDetection } = usePoseDetection({
     videoRef,
     canvasRef,
@@ -42,7 +39,6 @@ export function VideoStream({
     isActive: isStreaming && isActive
   });
 
-  // Handle streaming state changes
   useEffect(() => {
     if (isStreaming && poseLandmarker && !isMediaPipeLoading) {
       startStream();
@@ -51,7 +47,6 @@ export function VideoStream({
     }
   }, [isStreaming, poseLandmarker, isMediaPipeLoading, startStream, stopStream]);
 
-  // Handle errors
   useEffect(() => {
     const error = mediaPipeError || streamError;
     if (error && onError) {
@@ -59,7 +54,6 @@ export function VideoStream({
     }
   }, [mediaPipeError, streamError, onError]);
 
-  // Show loading state
   if (isStreaming && (isMediaPipeLoading || !poseLandmarker)) {
     return (
       <div className={`w-full h-full ${className}`}>
@@ -68,7 +62,6 @@ export function VideoStream({
     );
   }
 
-  // Show error state
   if (streamError || mediaPipeError) {
     return (
       <div className={`w-full h-full flex flex-col items-center justify-center ${className}`}>

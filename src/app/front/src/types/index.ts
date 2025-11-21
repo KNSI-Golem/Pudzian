@@ -4,8 +4,6 @@ export type {
   VideoStreamConfig,
   MediaPipeHookReturn,
   DrawingConfig,
-  PoseAnalysis,
-  PostureIssue
 } from './mediapipe';
 
 export type {
