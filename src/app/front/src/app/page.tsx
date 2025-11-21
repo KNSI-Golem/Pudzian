@@ -68,7 +68,6 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center h-full p-8">
               <h2 className="font-golem text-2xl mb-4 text-white">GOLEM CZEKA</h2>
               <AwakeningGrid />
-              <p className="text-gray-400 mt-8 text-sm">...</p>
             </div>
           ) : (
             <ModelViewer 
