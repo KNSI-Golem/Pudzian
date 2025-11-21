@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { ModelViewerRef, ModelLoadResult } from '@/types';
 
 export interface UseThreeSceneOptions {
   modelPath?: string;
-  enableControls?: boolean;
 }
 
 export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const {
     modelPath,
-    enableControls = true
   } = options;
 
   const mountRef = useRef<HTMLDivElement>(null);
@@ -23,7 +20,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const [error, setError] = useState<string | null>(null);
   const [model, setModel] = useState<ModelLoadResult | null>(null);
 
-  // Initialize scene
   const initScene = useCallback(() => {
     if (!mountRef.current || sceneRef.current) return;
 
@@ -32,29 +28,19 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     const height = rect.height;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x333333);
+    scene.background = new THREE.Color(0x9c9ca5)
 
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 170, 120);
+    const camera = new THREE.PerspectiveCamera(50, width/height, 0.1, 2000);
+    camera.position.set(0, 130, 150);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 10, 7.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+    scene.add(ambientLight)
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+    directionalLight.position.set(5, 20, 8);
     scene.add(directionalLight);
-
-    let controls: OrbitControls | undefined;
-    if (enableControls) {
-      controls = new OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 170, 0);
-      controls.minDistance = 80;
-      controls.maxDistance = 200;
-      controls.minPolarAngle = Math.PI * 0.3;
-      controls.maxPolarAngle = Math.PI * 0.7;
-    }
 
     mountRef.current.appendChild(renderer.domElement);
 
@@ -62,12 +48,10 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       camera,
       scene,
       renderer,
-      controls
     };
 
-  }, [enableControls]);
+  }, []);
 
-  // Load GLTF model
   const loadModel = useCallback(async (path: string) => {
     if (!sceneRef.current) return;
 
@@ -101,20 +85,14 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     }
   }, []);
 
-  // Animation loop
   const animate = useCallback(() => {
     if (!sceneRef.current) return;
-
-    if (sceneRef.current.controls) {
-      sceneRef.current.controls.update();
-    }
 
     sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
     
     animationIdRef.current = requestAnimationFrame(animate);
   }, []);
 
-  // Handle resize
   const handleResize = useCallback(() => {
     if (!sceneRef.current || !mountRef.current) return;
 
@@ -127,7 +105,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     sceneRef.current.renderer.setSize(width, height);
   }, []);
 
-  // Initialize scene on mount
   useEffect(() => {
     initScene();
     
@@ -139,7 +116,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     return () => {
       resizeObserver.disconnect();
       if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
+        if (typeof animationIdRef.current === "number") {
+          cancelAnimationFrame(animationIdRef.current);
+        }
       }
       if (sceneRef.current) {
         if (sceneRef.current.renderer.domElement.parentNode) {
@@ -153,7 +132,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     };
   }, [initScene, handleResize]);
 
-  // Load model when path changes
   useEffect(() => {
     if (modelPath && sceneRef.current) {
       loadModel(modelPath);
@@ -167,7 +145,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     }
     return () => {
       if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
+        if (typeof animationIdRef.current === "number") {
+          cancelAnimationFrame(animationIdRef.current);
+        }
       }
     };
   }, [animate]);
