@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 
+export interface ModelAnimConfig {
+  handLeft: string;
+  handRight: string;
+  foreArmLeft: string;
+  foreArmRight: string;
+}
+
 export interface ModelViewerProps {
   modelPath: string;
   isActive: boolean;
@@ -13,7 +20,6 @@ export interface ModelViewerRef {
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   mixer?: THREE.AnimationMixer;
-  controls?: any; // OrbitControls type
 }
 
 export interface ModelLoadResult {

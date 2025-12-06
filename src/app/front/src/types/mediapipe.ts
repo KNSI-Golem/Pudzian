@@ -1,6 +1,5 @@
 import {
   PoseLandmarker,
-  DrawingUtils,
   NormalizedLandmark
 } from "@mediapipe/tasks-vision";
 
