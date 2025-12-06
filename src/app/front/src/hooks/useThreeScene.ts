@@ -94,8 +94,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const animate = useCallback(() => {
     if (!sceneRef.current) return;
 
-    const t = clock.getElapsedTime();
-
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft)) {
       sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft).quaternion.x += Math.sin(t) * 0.01;
     }
