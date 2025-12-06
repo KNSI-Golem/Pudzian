@@ -1,24 +1,31 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { ModelViewerRef, ModelLoadResult } from '@/types';
+import type {ModelViewerRef, ModelLoadResult, ModelAnimConfig} from '@/types';
+
+export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
+  handLeft: "mixamorigLeftArm",
+  handRight: "mixamorigRightArm",
+  foreArmLeft: "mixamorigLeftForeArm",
+  foreArmRight: "mixamorigRightForeArm"
+}
 
 export interface UseThreeSceneOptions {
   modelPath?: string;
 }
-
 export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const {
     modelPath,
   } = options;
 
-  const mountRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<ModelViewerRef | null>(null);
   const animationIdRef = useRef<number | undefined>(undefined);
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [model, setModel] = useState<ModelLoadResult | null>(null);
+  const [model, setModel] = useState<ModelLoadResult | null>(null);;
+  const clock = new THREE.Clock();
 
   const initScene = useCallback(() => {
     if (!mountRef.current || sceneRef.current) return;
@@ -88,8 +95,14 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const animate = useCallback(() => {
     if (!sceneRef.current) return;
 
+    const t = clock.getElapsedTime();
+
+    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft)) {
+      sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft).quaternion.x += Math.sin(t) * 0.01;
+    }
+
     sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
-    
+
     animationIdRef.current = requestAnimationFrame(animate);
   }, []);
 

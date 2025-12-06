@@ -14,7 +14,13 @@ export type {
 } from './ui';
 
 export type {
+  ModelAnimConfig,
   ModelViewerProps,
   ModelViewerRef,
   ModelLoadResult
 } from './three';
+
+export type {
+  AnimateMappingConfig,
+  AnimateProps
+} from './animate';
