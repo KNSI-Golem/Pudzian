@@ -3,14 +3,25 @@ import {getRotationMatrix, getCrossProduct, getQuaternionFromRot, getVectorFromP
 import {PoseDetectionResult} from "@/types";
 import {MEDIAPIPE_JOINTS_CONFIG} from "@/lib/animate/mapping";
 
-export function processAnimate({poseDetection}: PoseDetectionResult) {
-    const hand_left_l = poseDetection.landmarks[MEDIAPIPE_JOINTS_CONFIG.handLeft];
-    const forearm_left_l = poseDetection.landmarks[MEDIAPIPE_JOINTS_CONFIG.foreArmLeft];
-    const arm_left_l = poseDetection.landmarks[MEDIAPIPE_JOINTS_CONFIG.armLeft];
+export const JOINT_POINTS_CONFIG: {[key: string]: number[]} = { // move to mapping?
+    'forearm_left': [MEDIAPIPE_JOINTS_CONFIG.handLeft, MEDIAPIPE_JOINTS_CONFIG.foreArmLeft, MEDIAPIPE_JOINTS_CONFIG.armLeft],
+    'forearm_right': [MEDIAPIPE_JOINTS_CONFIG.handRight, MEDIAPIPE_JOINTS_CONFIG.foreArmRight, MEDIAPIPE_JOINTS_CONFIG.armRight],
+    'arm_left': [MEDIAPIPE_JOINTS_CONFIG.foreArmLeft, MEDIAPIPE_JOINTS_CONFIG.armLeft, MEDIAPIPE_JOINTS_CONFIG.shoulderLeft],
+    'arm_right': [MEDIAPIPE_JOINTS_CONFIG.foreArmRight, MEDIAPIPE_JOINTS_CONFIG.armRight, MEDIAPIPE_JOINTS_CONFIG.shoulderRight],
+}
 
-    const forearm_left_q = getQuaternionFromLandmarks(hand_left_l, forearm_left_l, arm_left_l);
+export function processAnimateJoint(poseDetection: PoseDetectionResult, jointName: string) {
+    const joint_start = JOINT_POINTS_CONFIG[jointName][0];
+    const joint_middle = JOINT_POINTS_CONFIG[jointName][1];
+    const joint_end = JOINT_POINTS_CONFIG[jointName][2];
 
-    return forearm_left_q
+    const nl0 = poseDetection.worldLandmarks[0][joint_start];
+    const nl1 = poseDetection.worldLandmarks[0][joint_middle];
+    const nl2 = poseDetection.worldLandmarks[0][joint_end];
+
+    const joint_q = getQuaternionFromLandmarks(nl0, nl1, nl2);
+
+    return joint_q
 }
 
 export function getQuaternionFromLandmarks(nl0: NormalizedLandmark,

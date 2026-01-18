@@ -8,13 +8,15 @@ interface PoseDetectionProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   poseLandmarker: PoseLandmarker | null;
   isActive: boolean;
+  poseRef?: React.RefObject<PoseDetectionResult | null>;
 }
 
 export function usePoseDetection({
   videoRef,
   canvasRef,
   poseLandmarker,
-  isActive
+  isActive,
+  poseRef
 }: PoseDetectionProps) {
   const isRunningRef = useRef(false);
   const lastVideoTimeRef = useRef(-1);
@@ -54,6 +56,10 @@ export function usePoseDetection({
             landmarks: result.landmarks,
             worldLandmarks: result.worldLandmarks,
           };
+
+          if (poseRef) {
+            poseRef.current = poseResult;
+          }
           
           drawPoseLandmarks(canvasCtxRef.current, drawingUtilsRef.current, poseResult);
         }
@@ -65,7 +71,7 @@ export function usePoseDetection({
     } catch (error) {
       console.error("Error during pose detection:", error);
     }
-  }, [videoRef, canvasRef, poseLandmarker, isActive]);
+  }, [videoRef, canvasRef, poseLandmarker, isActive, poseRef]);
 
   const startDetection = useCallback(() => {
     if (!canvasRef.current) return;

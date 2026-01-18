@@ -14,7 +14,7 @@ export interface MediaPipeConfig {
 
 export interface PoseDetectionResult {
   landmarks: NormalizedLandmark[][];
-  worldLandmarks?: NormalizedLandmark[][];
+  worldLandmarks: NormalizedLandmark[][];
   segmentationMasks?: ImageData[];
 }
 

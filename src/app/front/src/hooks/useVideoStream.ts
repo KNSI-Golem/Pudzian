@@ -19,7 +19,6 @@ export function useVideoStream(config?: Partial<VideoStreamConfig>): UseVideoStr
 
   const startStream = useCallback(async () => {
     try {
-      // Check browser support first
       const supportCheck = checkMediaSupport();
       if (!supportCheck.supported) {
         throw new Error(supportCheck.error);
@@ -27,7 +26,7 @@ export function useVideoStream(config?: Partial<VideoStreamConfig>): UseVideoStr
 
       setError(null);
       const mediaStream = await getUserMediaStream(config);
-      
+
       streamRef.current = mediaStream;
       setStream(mediaStream);
       setIsActive(true);
@@ -48,7 +47,6 @@ export function useVideoStream(config?: Partial<VideoStreamConfig>): UseVideoStr
     }
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (streamRef.current) {
