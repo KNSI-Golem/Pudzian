@@ -84,6 +84,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       });
 
       const model = gltf.scene;
+      model.scale.x = -1; // mirror model
       sceneRef.current.scene.add(model);
 
       setModel({ gltf });
@@ -105,25 +106,33 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft);
       const animData = processAnimateJoint(pose, 'forearm_left');
+      if(joint){
       joint.quaternion.copy(animData);
+      }
     }
 
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft);
       const animData = processAnimateJoint(pose, 'arm_left');
+      if(joint){
       joint.quaternion.copy(animData);
+      }
     }
 
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight);
       const animData = processAnimateJoint(pose, 'forearm_right');
+      if(joint){
       joint.quaternion.copy(animData);
+      }
     }
 
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight);
       const animData = processAnimateJoint(pose, 'arm_right');
+      if(joint){
       joint.quaternion.copy(animData);
+      }
     }
 
     sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
