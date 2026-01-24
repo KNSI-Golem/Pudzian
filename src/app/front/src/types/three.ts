@@ -1,4 +1,14 @@
 import * as THREE from 'three';
+import type { PoseDetectionResult } from './mediapipe';
+
+export interface ModelAnimConfig {
+  handLeft: string;
+  handRight: string;
+  foreArmLeft: string;
+  foreArmRight: string;
+  armLeft: string;
+  armRight: string;
+}
 
 export interface ModelViewerProps {
   modelPath: string;
@@ -6,6 +16,7 @@ export interface ModelViewerProps {
   className?: string;
   onError?: (error: string) => void;
   onLoad?: () => void;
+  poseRef?: React.RefObject<PoseDetectionResult | null>;
 }
 
 export interface ModelViewerRef {
@@ -13,7 +24,6 @@ export interface ModelViewerRef {
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   mixer?: THREE.AnimationMixer;
-  controls?: any; // OrbitControls type
 }
 
 export interface ModelLoadResult {

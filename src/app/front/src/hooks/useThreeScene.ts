@@ -1,24 +1,36 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { ModelViewerRef, ModelLoadResult } from '@/types';
+import type { ModelViewerRef, ModelLoadResult, ModelAnimConfig } from '@/types';
+import type { PoseDetectionResult } from '@/types';
+import { processAnimateJoint } from '@/lib/animate';
+
+export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
+  handLeft: "mixamorigLeftArm",
+  handRight: "mixamorigRightArm",
+  foreArmLeft: "mixamorigLeftForeArm",
+  foreArmRight: "mixamorigRightForeArm",
+  armLeft: "mixamorigLeftArm",
+  armRight: "mixamorigRightArm",
+}
 
 export interface UseThreeSceneOptions {
   modelPath?: string;
+  poseRef?: React.RefObject<PoseDetectionResult | null>;
 }
-
 export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const {
     modelPath,
+    poseRef
   } = options;
 
-  const mountRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<ModelViewerRef | null>(null);
   const animationIdRef = useRef<number | undefined>(undefined);
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [model, setModel] = useState<ModelLoadResult | null>(null);
+  const [model, setModel] = useState<ModelLoadResult | null>(null);;
 
   const initScene = useCallback(() => {
     if (!mountRef.current || sceneRef.current) return;
@@ -72,6 +84,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       });
 
       const model = gltf.scene;
+      model.scale.x = -1; // mirror model
       sceneRef.current.scene.add(model);
 
       setModel({ gltf });
@@ -88,10 +101,48 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const animate = useCallback(() => {
     if (!sceneRef.current) return;
 
+    const pose = poseRef?.current;
+
+    // forearm left animation
+    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft) && pose){
+      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft);
+      const animData = processAnimateJoint(pose, 'forearm_left');
+      if(joint){
+      joint.quaternion.copy(animData);
+      }
+    }
+
+    // forearm right animation
+    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft) && pose){
+      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft);
+      const animData = processAnimateJoint(pose, 'arm_left');
+      if(joint){
+      joint.quaternion.copy(animData);
+      }
+    }
+
+    // arm right animation
+    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight) && pose){
+      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight);
+      const animData = processAnimateJoint(pose, 'forearm_right');
+      if(joint){
+      joint.quaternion.copy(animData);
+      }
+    }
+
+    // arm right animation
+    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight) && pose){
+      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight);
+      const animData = processAnimateJoint(pose, 'arm_right');
+      if(joint){
+      joint.quaternion.copy(animData);
+      }
+    }
+
     sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
-    
+
     animationIdRef.current = requestAnimationFrame(animate);
-  }, []);
+  }, [poseRef]);
 
   const handleResize = useCallback(() => {
     if (!sceneRef.current || !mountRef.current) return;
@@ -138,7 +189,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     }
   }, [modelPath, loadModel]);
 
-  // Start animation loop
   useEffect(() => {
     if (sceneRef.current) {
       animate();

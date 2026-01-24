@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { VideoStream, ModelViewer } from '@/components/video';
 import { Button, ViewPanel, AwakeningGrid } from '@/components/ui';
-import type { GolemUIState } from '@/types';
+import type { GolemUIState, PoseDetectionResult } from '@/types';
 
 export default function Home() {
+  const poseRef = useRef<PoseDetectionResult | null>(null);
   const [uiState, setUIState] = useState<GolemUIState>({
     isStreaming: false,
     showInitialView: true,
@@ -23,7 +24,6 @@ export default function Home() {
 
   const handleError = useCallback((error: string) => {
     setUIState(prev => {
-      // Only update if the error is different to prevent loops
       if (prev.error !== error) {
         return {
           ...prev,
@@ -59,6 +59,7 @@ export default function Home() {
             <VideoStream 
               isStreaming={uiState.isStreaming} 
               onError={handleError}
+              poseRef={poseRef}
             />
           )}
         </ViewPanel>
@@ -74,6 +75,7 @@ export default function Home() {
               modelPath="/models/result.gltf"
               isActive={uiState.isStreaming}
               onError={handleError}
+              poseRef={poseRef}
             />
           )}
         </ViewPanel>

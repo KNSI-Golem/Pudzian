@@ -1,6 +1,5 @@
 import {
   PoseLandmarker,
-  DrawingUtils,
   NormalizedLandmark
 } from "@mediapipe/tasks-vision";
 
@@ -15,7 +14,7 @@ export interface MediaPipeConfig {
 
 export interface PoseDetectionResult {
   landmarks: NormalizedLandmark[][];
-  worldLandmarks?: NormalizedLandmark[][];
+  worldLandmarks: NormalizedLandmark[][];
   segmentationMasks?: ImageData[];
 }
 

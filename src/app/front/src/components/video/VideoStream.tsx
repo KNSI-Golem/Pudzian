@@ -7,17 +7,20 @@ import { formatErrorMessage } from '@/lib/utils';
 import { VideoCanvas } from '@/components';
 import { CameraPlaceholder } from '@/components';
 import { usePoseDetection } from '@/components';
+import { PoseDetectionResult } from '@/types';
 
 interface VideoStreamProps {
   isStreaming: boolean;
   className?: string;
   onError?: (error: string) => void;
+  poseRef?: React.RefObject<PoseDetectionResult | null>;
 }
 
 export function VideoStream({ 
   isStreaming, 
   className = "",
-  onError
+  onError,
+  poseRef
 }: VideoStreamProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,7 +39,8 @@ export function VideoStream({
     videoRef,
     canvasRef,
     poseLandmarker,
-    isActive: isStreaming && isActive
+    isActive: isStreaming && isActive,
+    poseRef
   });
 
   useEffect(() => {
