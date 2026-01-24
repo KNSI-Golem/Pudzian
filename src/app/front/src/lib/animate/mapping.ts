@@ -1,12 +1,19 @@
 import {AnimateMappingConfig} from "@/types";
 
 export const MEDIAPIPE_JOINTS_CONFIG: AnimateMappingConfig = {
-    handRight: 20,
     handLeft: 19,
+    handRight: 20,
+    foreArmLeft: 15,     
     foreArmRight: 16,
-    foreArmLeft: 15, 
+    armLeft: 13,    
     armRight: 14,
-    armLeft: 13,
+    shoulderLeft: 11,    
     shoulderRight: 12,
-    shoulderLeft: 11,
+}
+
+export const JOINT_POINTS_CONFIG: {[key: string]: number[]} = {
+    'forearm_left': [MEDIAPIPE_JOINTS_CONFIG.handLeft, MEDIAPIPE_JOINTS_CONFIG.foreArmLeft, MEDIAPIPE_JOINTS_CONFIG.armLeft],
+    'forearm_right': [MEDIAPIPE_JOINTS_CONFIG.handRight, MEDIAPIPE_JOINTS_CONFIG.foreArmRight, MEDIAPIPE_JOINTS_CONFIG.armRight],
+    'arm_left': [MEDIAPIPE_JOINTS_CONFIG.foreArmLeft, MEDIAPIPE_JOINTS_CONFIG.armLeft, MEDIAPIPE_JOINTS_CONFIG.shoulderLeft],
+    'arm_right': [MEDIAPIPE_JOINTS_CONFIG.foreArmRight, MEDIAPIPE_JOINTS_CONFIG.armRight, MEDIAPIPE_JOINTS_CONFIG.shoulderRight],
 }

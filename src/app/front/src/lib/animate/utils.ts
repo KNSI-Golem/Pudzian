@@ -5,7 +5,7 @@ export function getQuaternionFromRot(R: THREE.Matrix3) {
     const q = new THREE.Quaternion();
     const T = new THREE.Matrix4();
     T.setFromMatrix3(R);
-    q.setFromRotationMatrix(T); // requires transformation matrix, not rotation
+    q.setFromRotationMatrix(T); // confusing naming - it requires a transformation matrix
     return q
 }
 

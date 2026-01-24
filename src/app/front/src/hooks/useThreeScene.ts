@@ -103,6 +103,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
     const pose = poseRef?.current;
 
+    // forearm left animation
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft);
       const animData = processAnimateJoint(pose, 'forearm_left');
@@ -111,6 +112,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       }
     }
 
+    // forearm right animation
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft);
       const animData = processAnimateJoint(pose, 'arm_left');
@@ -119,6 +121,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       }
     }
 
+    // arm right animation
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight);
       const animData = processAnimateJoint(pose, 'forearm_right');
@@ -127,6 +130,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       }
     }
 
+    // arm right animation
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight);
       const animData = processAnimateJoint(pose, 'arm_right');

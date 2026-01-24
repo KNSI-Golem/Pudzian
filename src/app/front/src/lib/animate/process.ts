@@ -1,14 +1,8 @@
 import {NormalizedLandmark} from "@mediapipe/tasks-vision";
 import {getRotationMatrix, getCrossProduct, getQuaternionFromRot, getVectorFromPoints, landmarkToVector3, normalizeVector} from "@/lib/animate/utils";
 import {PoseDetectionResult} from "@/types";
-import {MEDIAPIPE_JOINTS_CONFIG} from "@/lib/animate/mapping";
+import {JOINT_POINTS_CONFIG} from "@/lib/animate/mapping";
 
-export const JOINT_POINTS_CONFIG: {[key: string]: number[]} = { // move to mapping?
-    'forearm_left': [MEDIAPIPE_JOINTS_CONFIG.handLeft, MEDIAPIPE_JOINTS_CONFIG.foreArmLeft, MEDIAPIPE_JOINTS_CONFIG.armLeft],
-    'forearm_right': [MEDIAPIPE_JOINTS_CONFIG.handRight, MEDIAPIPE_JOINTS_CONFIG.foreArmRight, MEDIAPIPE_JOINTS_CONFIG.armRight],
-    'arm_left': [MEDIAPIPE_JOINTS_CONFIG.foreArmLeft, MEDIAPIPE_JOINTS_CONFIG.armLeft, MEDIAPIPE_JOINTS_CONFIG.shoulderLeft],
-    'arm_right': [MEDIAPIPE_JOINTS_CONFIG.foreArmRight, MEDIAPIPE_JOINTS_CONFIG.armRight, MEDIAPIPE_JOINTS_CONFIG.shoulderRight],
-}
 
 export function processAnimateJoint(poseDetection: PoseDetectionResult, jointName: string) {
     const joint_start = JOINT_POINTS_CONFIG[jointName][0];
