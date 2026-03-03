@@ -47,7 +47,7 @@ export function ModelViewer({
   }, [model, handleLoad]);
 
   return (
-    <div className={`w-full h-full relative ${className}`}>
+    <div className={`w-full h-full relative rounded-lg overflow-hidden ${className}`}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-opacity-75 z-10">
           <div className="text-center">

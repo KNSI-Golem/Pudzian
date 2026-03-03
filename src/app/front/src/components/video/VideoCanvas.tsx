@@ -24,7 +24,7 @@ export function VideoCanvas({
         ref={videoRef}
         autoPlay
         playsInline
-        className="absolute inset-0 w-full h-full object-cover rounded shadow"
+        className="absolute inset-0 w-full h-full object-cover rounded-lg overflow-hidden shadow"
         style={{ 
           backgroundColor: "#2d2d37",
           transform: "scaleX(-1)"
@@ -32,7 +32,7 @@ export function VideoCanvas({
       />
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full rounded shadow"
+        className="absolute inset-0 w-full h-full rounded-lg overflow-hidden shadow"
         style={{
           transform: "scaleX(-1)"
         }}
