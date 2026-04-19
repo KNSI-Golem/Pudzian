@@ -1,28 +1,33 @@
-# Golem Deepfake App (Next.js)
+# Project GolemVR: user interface
 
-## 🚀 Getting Started
+## Description
 
-### 1. Install dependencies
 
-```bash
-npm install
-```
+Next.js application for GolemVR web interface. Move in front of your camera and see the Golem replicate your gestures.
 
-### 2. Configure environment variables
+## Installation 
 
-Create a `.env.local` file in the root directory and add the following:
+1. **Navigate to the frontend folder**
+   ```sh
+   cd src/app/front
+   ```
 
-```env
-AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
-AWS_REGION=eu-central-1
-S3_BUCKET_NAME=pudzian-dev
-```
+2. **Install dependencies**  
+   ```sh
+   npm install
+   ```
 
-### 3. Run the development server
+4. **Run development server**
+   ```sh
+   npm run dev
+   ```
 
-```bash
-npm run dev
-```
+### Supported browsers
 
-Visit [http://localhost:3000](http://localhost:3000) in your browser to see it in action.
+- Chrome
+- Safari
+
+## Usage
+
+Open your browser and navigate to localhost:3000 (if using default Next.js port). Make sure you are connected to the Internet, or else the pose detection model will not load. Click on "Aktywuj Golema" and accept webcam permissions. The left canvas will display the camera view and landmark overlay. The right canvas contains the animated Golem model.
+
