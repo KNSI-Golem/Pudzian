@@ -42,12 +42,12 @@ export default function Home() {
         <ViewPanel className="aspect-[4/3]">
           {uiState.showInitialView ? (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
-              <h2 className="font-golem text-2xl mb-4 text-white">TWOJA PERSPEKTYWA</h2>
+              <h2 className="font-golem text-2xl mb-4 text-white">Your perspective</h2>
               <p className="text-gray-300 mb-8 max-w-sm">
-                Aby rozpocząć, zezwól na dostęp do kamery. Nasz model sztucznej inteligencji przetworzy obraz w czasie rzeczywistym i stworzy Twoją cyfrową wersję Golema.
+                To get started, grant access to your camera. Our AI model will process the image in real time and create your digital version of the Golem.
               </p>
               <Button onClick={handleActivate}>
-                Aktywuj Golema
+                Activate the Golem
               </Button>
               {uiState.error && (
                 <p className="text-red-400 text-sm mt-4 max-w-sm">
@@ -67,7 +67,7 @@ export default function Home() {
         <ViewPanel className="aspect-[4/3]">
           {uiState.showInitialView ? (
             <div className="flex flex-col items-center justify-center h-full p-8">
-              <h2 className="font-golem text-2xl mb-4 text-white">GOLEM CZEKA</h2>
+              <h2 className="font-golem text-2xl mb-4 text-white">The Golem is waiting</h2>
               <AwakeningGrid />
             </div>
           ) : (
