@@ -52,7 +52,7 @@ export function ModelViewer({
         <div className="absolute inset-0 flex items-center justify-center bg-opacity-75 z-10">
           <div className="text-center">
             <div className="animate-spin w-8 h-8 rounded-full mx-auto mb-2"></div>
-            <p className="text-white text-sm">Ładowanie modelu 3D...</p>
+            <p className="text-white text-sm">Loading 3D model...</p>
           </div>
         </div>
       )}
@@ -60,7 +60,7 @@ export function ModelViewer({
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-red-900 bg-opacity-75 z-10">
           <div className="text-center p-4">
-            <p className="text-white text-sm mb-2">Błąd ładowania modelu:</p>
+            <p className="text-white text-sm mb-2">Error loading model:</p>
             <p className="text-red-200 text-xs">{error}</p>
           </div>
         </div>
