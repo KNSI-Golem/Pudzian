@@ -72,7 +72,7 @@ export default function Home() {
             </div>
           ) : (
             <ModelViewer 
-              modelPath="/models/result.gltf"
+              modelPath="/models/Final_Cleaned_Model.glb"
               isActive={uiState.isStreaming}
               onError={handleError}
               poseRef={poseRef}

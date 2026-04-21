@@ -46,21 +46,21 @@ export function usePoseDetection({
     try {
       if (lastVideoTimeRef.current !== videoElement.currentTime) {
         lastVideoTimeRef.current = videoElement.currentTime;
-        
+
         const result = await poseLandmarker.detectForVideo(videoElement, startTimeMs);
-        
+
         if (canvasCtxRef.current && drawingUtilsRef.current && result.landmarks.length > 0) {
           clearCanvas(canvasCtxRef.current, canvasElement.width, canvasElement.height);
-          
+
           const poseResult: PoseDetectionResult = {
-            landmarks: result.landmarks,
+            landmarks: result.landmarks, // landmarks are here
             worldLandmarks: result.worldLandmarks,
           };
 
           if (poseRef) {
             poseRef.current = poseResult;
           }
-          
+
           drawPoseLandmarks(canvasCtxRef.current, drawingUtilsRef.current, poseResult);
         }
       }

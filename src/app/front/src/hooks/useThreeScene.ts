@@ -27,6 +27,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<ModelViewerRef | null>(null);
   const animationIdRef = useRef<number | undefined>(undefined);
+  const jointsCacheRef = useRef<Record<string, THREE.Object3D | null>>({});
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,8 +85,21 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       });
 
       const model = gltf.scene;
-      model.scale.x = -1; // mirror model
-      sceneRef.current.scene.add(model);
+      model.name = 'GolemModel';
+
+      model.traverse((child: any) => {
+        if (child.isMesh && !child.isSkinnedMesh) {
+          child.visible = false;
+        }
+      });
+
+      if (sceneRef.current) {
+        const oldModel = sceneRef.current.scene.getObjectByName('GolemModel');
+        if (oldModel) {
+          sceneRef.current.scene.remove(oldModel);
+        }
+        sceneRef.current.scene.add(model);
+      }
 
       setModel({ gltf });
       setIsLoading(false);
@@ -103,39 +117,46 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
     const pose = poseRef?.current;
 
-    // forearm left animation
-    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft) && pose){
-      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft);
-      const animData = processAnimateJoint(pose, 'forearm_left');
-      if(joint){
-      joint.quaternion.copy(animData);
-      }
-    }
+    const scratchQuat = new THREE.Quaternion();
 
-    // forearm right animation
-    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft) && pose){
-      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft);
-      const animData = processAnimateJoint(pose, 'arm_left');
-      if(joint){
-      joint.quaternion.copy(animData);
+    const getCachedJoint = (name: string) => {
+      if (jointsCacheRef.current[name] === undefined) {
+        jointsCacheRef.current[name] = sceneRef.current!.scene.getObjectByName(name) || null;
       }
-    }
+      return jointsCacheRef.current[name];
+    };
 
-    // arm right animation
-    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight) && pose){
-      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight);
-      const animData = processAnimateJoint(pose, 'forearm_right');
-      if(joint){
-      joint.quaternion.copy(animData);
+    if (pose) {
+      const armLeft = getCachedJoint(ANIM_JOINTS_CONFIG.armLeft);
+      if(armLeft && armLeft.parent){
+        const animData = processAnimateJoint(pose, 'arm_left');
+        armLeft.parent.updateWorldMatrix(true, false);
+        armLeft.parent.getWorldQuaternion(scratchQuat);
+        armLeft.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
       }
-    }
 
-    // arm right animation
-    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight) && pose){
-      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight);
-      const animData = processAnimateJoint(pose, 'arm_right');
-      if(joint){
-      joint.quaternion.copy(animData);
+      const foreArmLeft = getCachedJoint(ANIM_JOINTS_CONFIG.foreArmLeft);
+      if(foreArmLeft && foreArmLeft.parent){
+        const animData = processAnimateJoint(pose, 'forearm_left');
+        foreArmLeft.parent.updateWorldMatrix(true, false);
+        foreArmLeft.parent.getWorldQuaternion(scratchQuat);
+        foreArmLeft.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
+      }
+
+      const armRight = getCachedJoint(ANIM_JOINTS_CONFIG.armRight);
+      if(armRight && armRight.parent){
+        const animData = processAnimateJoint(pose, 'arm_right');
+        armRight.parent.updateWorldMatrix(true, false);
+        armRight.parent.getWorldQuaternion(scratchQuat);
+        armRight.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
+      }
+
+      const foreArmRight = getCachedJoint(ANIM_JOINTS_CONFIG.foreArmRight);
+      if(foreArmRight && foreArmRight.parent){
+        const animData = processAnimateJoint(pose, 'forearm_right');
+        foreArmRight.parent.updateWorldMatrix(true, false);
+        foreArmRight.parent.getWorldQuaternion(scratchQuat);
+        foreArmRight.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
       }
     }
 

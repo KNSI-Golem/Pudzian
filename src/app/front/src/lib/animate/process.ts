@@ -2,6 +2,7 @@ import {NormalizedLandmark} from "@mediapipe/tasks-vision";
 import {getRotationMatrix, getCrossProduct, getQuaternionFromRot, getVectorFromPoints, landmarkToVector3, normalizeVector} from "@/lib/animate/utils";
 import {PoseDetectionResult} from "@/types";
 import {JOINT_POINTS_CONFIG} from "@/lib/animate/mapping";
+import * as THREE from 'three';
 
 
 export function processAnimateJoint(poseDetection: PoseDetectionResult, jointName: string) {
@@ -25,15 +26,26 @@ export function getQuaternionFromLandmarks(nl0: NormalizedLandmark,
     const p1 = landmarkToVector3(nl1);
     const p2 = landmarkToVector3(nl2);
 
-    const v0 = getVectorFromPoints(p0, p1);
-    const v1 = getVectorFromPoints(p1, p2);
-    const v2 = getCrossProduct(v0, v1);
+    const vY = getVectorFromPoints(p0, p1);
+    const vPlane = getVectorFromPoints(p1, p2);
 
-    const u0 = normalizeVector(v0);
-    const u1 = normalizeVector(v1);
-    const u2 = normalizeVector(v2);
+    const uY = normalizeVector(vY);
+    const uPlane = normalizeVector(vPlane);
 
-    const R = getRotationMatrix(u0, u1, u2);
+    let uX = getCrossProduct(uY, uPlane);
+    if (uX.lengthSq() < 1e-6) {
+        if (Math.abs(uY.x) < 0.9) {
+             uX = normalizeVector(getCrossProduct(new THREE.Vector3(1, 0, 0), uY));
+        } else {
+             uX = normalizeVector(getCrossProduct(new THREE.Vector3(0, 1, 0), uY));
+        }
+    } else {
+        uX = normalizeVector(uX);
+    }
+
+    const uZ = normalizeVector(getCrossProduct(uX, uY));
+
+    const R = getRotationMatrix(uX, uY, uZ);
 
     return getQuaternionFromRot(R);
 }
