@@ -6,8 +6,8 @@ import type { PoseDetectionResult } from '@/types';
 import { processAnimateJoint } from '@/lib/animate';
 
 export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
-  handLeft: "mixamorigLeftArm",
-  handRight: "mixamorigRightArm",
+  handLeft: "mixamorigLeftArm", // wrong 
+  handRight: "mixamorigRightArm", // wrong
   foreArmLeft: "mixamorigLeftForeArm",
   foreArmRight: "mixamorigRightForeArm",
   armLeft: "mixamorigLeftArm",
@@ -103,6 +103,15 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
     const pose = poseRef?.current;
 
+    // arm left animation
+    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft) && pose){
+      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft);
+      const animData = processAnimateJoint(pose, 'arm_left');
+      if(joint){
+      joint.quaternion.copy(animData);
+      }
+    }
+
     // forearm left animation
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmLeft);
@@ -112,28 +121,19 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       }
     }
 
-    // forearm right animation
-    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft) && pose){
-      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armLeft);
-      const animData = processAnimateJoint(pose, 'arm_left');
-      if(joint){
-      joint.quaternion.copy(animData);
-      }
-    }
-
-    // arm right animation
-    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight) && pose){
-      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight);
-      const animData = processAnimateJoint(pose, 'forearm_right');
-      if(joint){
-      joint.quaternion.copy(animData);
-      }
-    }
-
     // arm right animation
     if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight) && pose){
       const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.armRight);
       const animData = processAnimateJoint(pose, 'arm_right');
+      if(joint){
+      joint.quaternion.copy(animData);
+      }
+    }
+
+    // forearm right animation
+    if(sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight) && pose){
+      const joint = sceneRef.current.scene.getObjectByName(ANIM_JOINTS_CONFIG.foreArmRight);
+      const animData = processAnimateJoint(pose, 'forearm_right');
       if(joint){
       joint.quaternion.copy(animData);
       }

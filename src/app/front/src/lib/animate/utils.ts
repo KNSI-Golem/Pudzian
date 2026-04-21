@@ -39,5 +39,5 @@ export function getVectorFromPoints(p1: THREE.Vector3,
 }
 
 export function landmarkToVector3(nl: NormalizedLandmark) {
-    return new THREE.Vector3(nl.x, -nl.y,-nl.z) // invert y and z for three.js coord system
+    return new THREE.Vector3(nl.x, -nl.y,nl.z) // invert y for three.js coord system
 }

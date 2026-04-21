@@ -13,4 +13,7 @@ export interface AnimateMappingConfig {
     armRight: number,
     shoulderLeft: number,
     shoulderRight: number,
+    hipLeft: number,
+    hipRight: number,
+    nose: number
 }

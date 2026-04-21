@@ -1,4 +1,4 @@
-import {NormalizedLandmark} from "@mediapipe/tasks-vision";
+import {Landmark} from "@mediapipe/tasks-vision";
 import {getRotationMatrix, getCrossProduct, getQuaternionFromRot, getVectorFromPoints, landmarkToVector3, normalizeVector} from "@/lib/animate/utils";
 import {PoseDetectionResult} from "@/types";
 import {JOINT_POINTS_CONFIG} from "@/lib/animate/mapping";
@@ -18,9 +18,9 @@ export function processAnimateJoint(poseDetection: PoseDetectionResult, jointNam
     return joint_q
 }
 
-export function getQuaternionFromLandmarks(nl0: NormalizedLandmark,
-                                           nl1: NormalizedLandmark,
-                                           nl2: NormalizedLandmark) {
+export function getQuaternionFromLandmarks(nl0: Landmark,
+                                           nl1: Landmark,
+                                           nl2: Landmark) {
     const p0 = landmarkToVector3(nl0);
     const p1 = landmarkToVector3(nl1);
     const p2 = landmarkToVector3(nl2);
