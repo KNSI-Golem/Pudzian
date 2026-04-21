@@ -1,5 +1,6 @@
 import {
   PoseLandmarker,
+  HandLandmarker,
   NormalizedLandmark
 } from "@mediapipe/tasks-vision";
 
@@ -15,6 +16,10 @@ export interface MediaPipeConfig {
 export interface PoseDetectionResult {
   landmarks: NormalizedLandmark[][];
   worldLandmarks: NormalizedLandmark[][];
+  leftHandLandmarks?: NormalizedLandmark[][];
+  rightHandLandmarks?: NormalizedLandmark[][];
+  leftHandWorldLandmarks?: NormalizedLandmark[][];
+  rightHandWorldLandmarks?: NormalizedLandmark[][];
   segmentationMasks?: ImageData[];
 }
 
@@ -26,6 +31,7 @@ export interface VideoStreamConfig {
 
 export interface MediaPipeHookReturn {
   poseLandmarker: PoseLandmarker | null;
+  handLandmarker: HandLandmarker | null;
   isLoading: boolean;
   error: string | null;
 }

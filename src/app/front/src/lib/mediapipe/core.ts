@@ -1,4 +1,4 @@
-import {DrawingUtils, FilesetResolver, PoseLandmarker} from "@mediapipe/tasks-vision";
+import {DrawingUtils, FilesetResolver, PoseLandmarker, HandLandmarker} from "@mediapipe/tasks-vision";
 import type {MediaPipeConfig} from "@/types";
 
 export const MEDIAPIPE_CONFIG: MediaPipeConfig = {
@@ -18,6 +18,22 @@ export async function createPoseLandmarker(config: Partial<MediaPipeConfig> = {}
   const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
 
   return await PoseLandmarker.createFromOptions(vision, finalConfig);
+}
+
+export const HAND_MEDIAPIPE_CONFIG = {
+  baseOptions: {
+    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+    delegate: "GPU",
+  },
+  runningMode: "VIDEO",
+  numHands: 2,
+};
+
+export async function createHandLandmarker(config: any = {}): Promise<HandLandmarker> {
+  const finalConfig = { ...HAND_MEDIAPIPE_CONFIG, ...config };
+  const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
+  // @ts-ignore
+  return await HandLandmarker.createFromOptions(vision, finalConfig);
 }
 
 export function createDrawingUtils(ctx: CanvasRenderingContext2D): DrawingUtils {

@@ -1,1 +1,6 @@
-conda activate pudzian && cd /home/jakub/Documents/Pudzian/src/app/front && rm -rf .next && npm install && npm run build && npm run dev
+conda activate pudzian
+cd /home/jakub/Documents/Pudzian/src/app/front
+rm -rf .next
+npm install
+npm run build
+npm run dev

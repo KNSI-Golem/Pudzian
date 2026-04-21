@@ -1,0 +1,741 @@
+--- KINEMATIC_STRUCTURE_START ---
+{
+  "metadata": {
+    "blender_version": "5.1.1",
+    "target_test": "AssimpFbx Hierarchy Validation",
+    "root_object": "RootNode"
+  },
+  "structure": {
+    "name": "RootNode",
+    "type": "EMPTY",
+    "level": 0,
+    "has_assimp_prefix": false,
+    "parent": null,
+    "children": [
+      {
+        "name": "mixamorig:Hips_$AssimpFbx$_Translation",
+        "type": "EMPTY",
+        "level": 1,
+        "has_assimp_prefix": true,
+        "parent": "RootNode",
+        "children": [
+          {
+            "name": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+            "type": "ARMATURE",
+            "level": 2,
+            "has_assimp_prefix": true,
+            "parent": "mixamorig:Hips_$AssimpFbx$_Translation",
+            "children": [
+              {
+                "name": "Alpha_Joints",
+                "type": "MESH",
+                "level": 3,
+                "has_assimp_prefix": false,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": []
+              },
+              {
+                "name": "Alpha_Surface",
+                "type": "MESH",
+                "level": 3,
+                "has_assimp_prefix": false,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": []
+              },
+              {
+                "name": "mixamorig:HeadTop_End",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": false,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": []
+              },
+              {
+                "name": "mixamorig:LeftHandIndex4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:LeftHandIndex4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:LeftHandIndex4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:LeftHandIndex4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:LeftHandIndex4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:LeftHandMiddle4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:LeftHandMiddle4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:LeftHandMiddle4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:LeftHandMiddle4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:LeftHandMiddle4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:LeftHandPinky4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:LeftHandPinky4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:LeftHandPinky4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:LeftHandPinky4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:LeftHandPinky4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:LeftHandRing4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:LeftHandRing4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:LeftHandRing4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:LeftHandRing4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:LeftHandRing4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:LeftHandThumb4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:LeftHandThumb4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:LeftHandThumb4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:LeftHandThumb4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:LeftHandThumb4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:LeftToe_End",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": false,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": []
+              },
+              {
+                "name": "mixamorig:RightHandIndex4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:RightHandIndex4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:RightHandIndex4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:RightHandIndex4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:RightHandIndex4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:RightHandMiddle4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:RightHandMiddle4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:RightHandMiddle4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:RightHandMiddle4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:RightHandMiddle4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:RightHandPinky4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:RightHandPinky4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:RightHandPinky4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:RightHandPinky4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:RightHandPinky4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:RightHandRing4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:RightHandRing4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:RightHandRing4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:RightHandRing4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:RightHandRing4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:RightHandThumb4_$AssimpFbx$_Translation",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": true,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": [
+                  {
+                    "name": "mixamorig:RightHandThumb4_$AssimpFbx$_PreRotation",
+                    "type": "EMPTY",
+                    "level": 4,
+                    "has_assimp_prefix": true,
+                    "parent": "mixamorig:RightHandThumb4_$AssimpFbx$_Translation",
+                    "children": [
+                      {
+                        "name": "mixamorig:RightHandThumb4",
+                        "type": "EMPTY",
+                        "level": 5,
+                        "has_assimp_prefix": false,
+                        "parent": "mixamorig:RightHandThumb4_$AssimpFbx$_PreRotation",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "mixamorig:RightToe_End",
+                "type": "EMPTY",
+                "level": 3,
+                "has_assimp_prefix": false,
+                "parent": "mixamorig:Hips_$AssimpFbx$_PreRotation",
+                "children": []
+              }
+            ],
+            "bones": [
+              {
+                "bone_name": "mixamorig:Hips",
+                "level": 0,
+                "has_assimp_prefix": false,
+                "parent_bone": null,
+                "children_bones": [
+                  {
+                    "bone_name": "mixamorig:Spine",
+                    "level": 1,
+                    "has_assimp_prefix": false,
+                    "parent_bone": "mixamorig:Hips",
+                    "children_bones": [
+                      {
+                        "bone_name": "mixamorig:Spine1",
+                        "level": 2,
+                        "has_assimp_prefix": false,
+                        "parent_bone": "mixamorig:Spine",
+                        "children_bones": [
+                          {
+                            "bone_name": "mixamorig:Spine2",
+                            "level": 3,
+                            "has_assimp_prefix": false,
+                            "parent_bone": "mixamorig:Spine1",
+                            "children_bones": [
+                              {
+                                "bone_name": "mixamorig:Neck",
+                                "level": 4,
+                                "has_assimp_prefix": false,
+                                "parent_bone": "mixamorig:Spine2",
+                                "children_bones": [
+                                  {
+                                    "bone_name": "mixamorig:Head",
+                                    "level": 5,
+                                    "has_assimp_prefix": false,
+                                    "parent_bone": "mixamorig:Neck",
+                                    "children_bones": []
+                                  }
+                                ]
+                              },
+                              {
+                                "bone_name": "mixamorig:LeftShoulder",
+                                "level": 4,
+                                "has_assimp_prefix": false,
+                                "parent_bone": "mixamorig:Spine2",
+                                "children_bones": [
+                                  {
+                                    "bone_name": "mixamorig:LeftArm",
+                                    "level": 5,
+                                    "has_assimp_prefix": false,
+                                    "parent_bone": "mixamorig:LeftShoulder",
+                                    "children_bones": [
+                                      {
+                                        "bone_name": "mixamorig:LeftForeArm",
+                                        "level": 6,
+                                        "has_assimp_prefix": false,
+                                        "parent_bone": "mixamorig:LeftArm",
+                                        "children_bones": [
+                                          {
+                                            "bone_name": "mixamorig:LeftHand",
+                                            "level": 7,
+                                            "has_assimp_prefix": false,
+                                            "parent_bone": "mixamorig:LeftForeArm",
+                                            "children_bones": [
+                                              {
+                                                "bone_name": "mixamorig:LeftHandThumb1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:LeftHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:LeftHandThumb2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:LeftHandThumb1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:LeftHandThumb3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:LeftHandThumb2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:LeftHandIndex1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:LeftHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:LeftHandIndex2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:LeftHandIndex1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:LeftHandIndex3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:LeftHandIndex2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:LeftHandMiddle1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:LeftHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:LeftHandMiddle2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:LeftHandMiddle1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:LeftHandMiddle3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:LeftHandMiddle2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:LeftHandRing1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:LeftHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:LeftHandRing2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:LeftHandRing1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:LeftHandRing3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:LeftHandRing2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:LeftHandPinky1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:LeftHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:LeftHandPinky2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:LeftHandPinky1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:LeftHandPinky3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:LeftHandPinky2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "bone_name": "mixamorig:RightShoulder",
+                                "level": 4,
+                                "has_assimp_prefix": false,
+                                "parent_bone": "mixamorig:Spine2",
+                                "children_bones": [
+                                  {
+                                    "bone_name": "mixamorig:RightArm",
+                                    "level": 5,
+                                    "has_assimp_prefix": false,
+                                    "parent_bone": "mixamorig:RightShoulder",
+                                    "children_bones": [
+                                      {
+                                        "bone_name": "mixamorig:RightForeArm",
+                                        "level": 6,
+                                        "has_assimp_prefix": false,
+                                        "parent_bone": "mixamorig:RightArm",
+                                        "children_bones": [
+                                          {
+                                            "bone_name": "mixamorig:RightHand",
+                                            "level": 7,
+                                            "has_assimp_prefix": false,
+                                            "parent_bone": "mixamorig:RightForeArm",
+                                            "children_bones": [
+                                              {
+                                                "bone_name": "mixamorig:RightHandThumb1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:RightHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:RightHandThumb2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:RightHandThumb1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:RightHandThumb3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:RightHandThumb2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:RightHandIndex1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:RightHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:RightHandIndex2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:RightHandIndex1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:RightHandIndex3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:RightHandIndex2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:RightHandMiddle1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:RightHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:RightHandMiddle2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:RightHandMiddle1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:RightHandMiddle3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:RightHandMiddle2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:RightHandRing1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:RightHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:RightHandRing2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:RightHandRing1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:RightHandRing3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:RightHandRing2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "bone_name": "mixamorig:RightHandPinky1",
+                                                "level": 8,
+                                                "has_assimp_prefix": false,
+                                                "parent_bone": "mixamorig:RightHand",
+                                                "children_bones": [
+                                                  {
+                                                    "bone_name": "mixamorig:RightHandPinky2",
+                                                    "level": 9,
+                                                    "has_assimp_prefix": false,
+                                                    "parent_bone": "mixamorig:RightHandPinky1",
+                                                    "children_bones": [
+                                                      {
+                                                        "bone_name": "mixamorig:RightHandPinky3",
+                                                        "level": 10,
+                                                        "has_assimp_prefix": false,
+                                                        "parent_bone": "mixamorig:RightHandPinky2",
+                                                        "children_bones": []
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "bone_name": "mixamorig:LeftUpLeg",
+                    "level": 1,
+                    "has_assimp_prefix": false,
+                    "parent_bone": "mixamorig:Hips",
+                    "children_bones": [
+                      {
+                        "bone_name": "mixamorig:LeftLeg",
+                        "level": 2,
+                        "has_assimp_prefix": false,
+                        "parent_bone": "mixamorig:LeftUpLeg",
+                        "children_bones": [
+                          {
+                            "bone_name": "mixamorig:LeftFoot",
+                            "level": 3,
+                            "has_assimp_prefix": false,
+                            "parent_bone": "mixamorig:LeftLeg",
+                            "children_bones": [
+                              {
+                                "bone_name": "mixamorig:LeftToeBase",
+                                "level": 4,
+                                "has_assimp_prefix": false,
+                                "parent_bone": "mixamorig:LeftFoot",
+                                "children_bones": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "bone_name": "mixamorig:RightUpLeg",
+                    "level": 1,
+                    "has_assimp_prefix": false,
+                    "parent_bone": "mixamorig:Hips",
+                    "children_bones": [
+                      {
+                        "bone_name": "mixamorig:RightLeg",
+                        "level": 2,
+                        "has_assimp_prefix": false,
+                        "parent_bone": "mixamorig:RightUpLeg",
+                        "children_bones": [
+                          {
+                            "bone_name": "mixamorig:RightFoot",
+                            "level": 3,
+                            "has_assimp_prefix": false,
+                            "parent_bone": "mixamorig:RightLeg",
+                            "children_bones": [
+                              {
+                                "bone_name": "mixamorig:RightToeBase",
+                                "level": 4,
+                                "has_assimp_prefix": false,
+                                "parent_bone": "mixamorig:RightFoot",
+                                "children_bones": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+--- KINEMATIC_STRUCTURE_END ---

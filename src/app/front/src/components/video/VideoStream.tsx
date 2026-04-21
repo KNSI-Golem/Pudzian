@@ -25,7 +25,7 @@ export function VideoStream({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { poseLandmarker, isLoading: isMediaPipeLoading, error: mediaPipeError } = useMediaPipe();
+  const { poseLandmarker, handLandmarker, isLoading: isMediaPipeLoading, error: mediaPipeError } = useMediaPipe();
 
   const { 
     stream, 
@@ -39,17 +39,18 @@ export function VideoStream({
     videoRef,
     canvasRef,
     poseLandmarker,
+    handLandmarker,
     isActive: isStreaming && isActive,
     poseRef
   });
 
   useEffect(() => {
-    if (isStreaming && poseLandmarker && !isMediaPipeLoading) {
+    if (isStreaming && poseLandmarker && handLandmarker && !isMediaPipeLoading) {
       startStream();
     } else if (!isStreaming) {
       stopStream();
     }
-  }, [isStreaming, poseLandmarker, isMediaPipeLoading, startStream, stopStream]);
+  }, [isStreaming, poseLandmarker, handLandmarker, isMediaPipeLoading, startStream, stopStream]);
 
   useEffect(() => {
     const error = mediaPipeError || streamError;

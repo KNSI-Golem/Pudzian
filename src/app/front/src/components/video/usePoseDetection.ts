@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { PoseLandmarker } from '@mediapipe/tasks-vision';
+import { PoseLandmarker, HandLandmarker } from '@mediapipe/tasks-vision';
 import { drawPoseLandmarks, clearCanvas, createDrawingUtils } from '@/lib/mediapipe';
 import type { PoseDetectionResult } from '@/types';
 
@@ -7,6 +7,7 @@ interface PoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   poseLandmarker: PoseLandmarker | null;
+  handLandmarker: HandLandmarker | null;
   isActive: boolean;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
 }
@@ -15,6 +16,7 @@ export function usePoseDetection({
   videoRef,
   canvasRef,
   poseLandmarker,
+  handLandmarker,
   isActive,
   poseRef
 }: PoseDetectionProps) {
@@ -27,7 +29,7 @@ export function usePoseDetection({
     const videoElement = videoRef.current;
     const canvasElement = canvasRef.current;
 
-    if (!videoElement || !canvasElement || !poseLandmarker || !isActive) {
+    if (!videoElement || !canvasElement || !poseLandmarker || !handLandmarker || !isActive) {
       return;
     }
 
@@ -47,14 +49,39 @@ export function usePoseDetection({
       if (lastVideoTimeRef.current !== videoElement.currentTime) {
         lastVideoTimeRef.current = videoElement.currentTime;
 
-        const result = await poseLandmarker.detectForVideo(videoElement, startTimeMs);
+        const [poseResultRaw, handResultRaw] = await Promise.all([
+          poseLandmarker.detectForVideo(videoElement, startTimeMs),
+          handLandmarker.detectForVideo(videoElement, startTimeMs)
+        ]);
 
-        if (canvasCtxRef.current && drawingUtilsRef.current && result.landmarks.length > 0) {
+        if (canvasCtxRef.current && drawingUtilsRef.current && poseResultRaw.landmarks.length > 0) {
           clearCanvas(canvasCtxRef.current, canvasElement.width, canvasElement.height);
 
+          let leftHandLandmarks = undefined;
+          let rightHandLandmarks = undefined;
+          let leftHandWorldLandmarks = undefined;
+          let rightHandWorldLandmarks = undefined;
+
+          if (handResultRaw.handedness.length > 0) {
+            handResultRaw.handedness.forEach((handednessList, index) => {
+              const category = handednessList[0].categoryName;
+              if (category === "Left") {
+                leftHandLandmarks = handResultRaw.landmarks[index];
+                leftHandWorldLandmarks = handResultRaw.worldLandmarks[index];
+              } else if (category === "Right") {
+                rightHandLandmarks = handResultRaw.landmarks[index];
+                rightHandWorldLandmarks = handResultRaw.worldLandmarks[index];
+              }
+            });
+          }
+
           const poseResult: PoseDetectionResult = {
-            landmarks: result.landmarks, // landmarks are here
-            worldLandmarks: result.worldLandmarks,
+            landmarks: poseResultRaw.landmarks, // landmarks are here
+            worldLandmarks: poseResultRaw.worldLandmarks,
+            leftHandLandmarks: leftHandLandmarks ? [leftHandLandmarks] : undefined,
+            rightHandLandmarks: rightHandLandmarks ? [rightHandLandmarks] : undefined,
+            leftHandWorldLandmarks: leftHandWorldLandmarks ? [leftHandWorldLandmarks] : undefined,
+            rightHandWorldLandmarks: rightHandWorldLandmarks ? [rightHandWorldLandmarks] : undefined,
           };
 
           if (poseRef) {
@@ -71,7 +98,7 @@ export function usePoseDetection({
     } catch (error) {
       console.error("Error during pose detection:", error);
     }
-  }, [videoRef, canvasRef, poseLandmarker, isActive, poseRef]);
+  }, [videoRef, canvasRef, poseLandmarker, handLandmarker, isActive, poseRef]);
 
   const startDetection = useCallback(() => {
     if (!canvasRef.current) return;
@@ -91,7 +118,7 @@ export function usePoseDetection({
   }, []);
 
   useEffect(() => {
-    if (isActive && poseLandmarker) {
+    if (isActive && poseLandmarker && handLandmarker) {
       startDetection();
     } else {
       stopDetection();
@@ -100,7 +127,7 @@ export function usePoseDetection({
     return () => {
       stopDetection();
     };
-  }, [isActive, poseLandmarker, startDetection, stopDetection]);
+  }, [isActive, poseLandmarker, handLandmarker, startDetection, stopDetection]);
 
   return {
     startDetection,

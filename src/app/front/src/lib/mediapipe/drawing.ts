@@ -1,4 +1,4 @@
-import { PoseLandmarker, DrawingUtils } from "@mediapipe/tasks-vision";
+import { PoseLandmarker, HandLandmarker, DrawingUtils } from "@mediapipe/tasks-vision";
 import type { DrawingConfig, PoseDetectionResult } from "@/types";
 
 export const DEFAULT_DRAWING_CONFIG: DrawingConfig = {
@@ -32,6 +32,26 @@ export function drawPoseLandmarks(
           return DrawingUtils.lerp(data.from?.z || 0, -0.15, 0.1, finalConfig.landmarkRadius, 1);
         }
       });
+    }
+
+    if (result.leftHandLandmarks) {
+      for (const landmarks of result.leftHandLandmarks) {
+        drawingUtils.drawConnectors(landmarks, HandLandmarker.HAND_CONNECTIONS, {
+          color: '#FF5722',
+          lineWidth: 2
+        });
+        drawingUtils.drawLandmarks(landmarks, { color: '#FFEB3B', radius: 2 });
+      }
+    }
+
+    if (result.rightHandLandmarks) {
+      for (const landmarks of result.rightHandLandmarks) {
+        drawingUtils.drawConnectors(landmarks, HandLandmarker.HAND_CONNECTIONS, {
+          color: '#00BCD4',
+          lineWidth: 2
+        });
+        drawingUtils.drawLandmarks(landmarks, { color: '#FFEB3B', radius: 2 });
+      }
     }
   } catch (error) {
     console.error("Error drawing pose landmarks:", error);

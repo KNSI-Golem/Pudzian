@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { PoseLandmarker } from "@mediapipe/tasks-vision";
-import { createPoseLandmarker, handleMediaPipeError } from "@/lib/mediapipe";
+import { PoseLandmarker, HandLandmarker } from "@mediapipe/tasks-vision";
+import { createPoseLandmarker, createHandLandmarker, handleMediaPipeError } from "@/lib/mediapipe";
 import type { MediaPipeHookReturn, MediaPipeConfig } from "@/types";
 
 
 export function useMediaPipe(config?: Partial<MediaPipeConfig>): MediaPipeHookReturn {
   const [poseLandmarker, setPoseLandmarker] = useState<PoseLandmarker | null>(null);
+  const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,10 +18,14 @@ export function useMediaPipe(config?: Partial<MediaPipeConfig>): MediaPipeHookRe
         setIsLoading(true);
         setError(null);
         
-        const landmarker = await createPoseLandmarker(config);
+        const [landmarker, hand] = await Promise.all([
+          createPoseLandmarker(config),
+          createHandLandmarker(config)
+        ]);
         
         if (mounted) {
           setPoseLandmarker(landmarker);
+          setHandLandmarker(hand);
         }
       } catch (err) {
         if (mounted) {
@@ -47,11 +52,19 @@ export function useMediaPipe(config?: Partial<MediaPipeConfig>): MediaPipeHookRe
           console.warn("Error closing MediaPipe resources:", err);
         }
       }
+      if (handLandmarker) {
+        try {
+          handLandmarker.close();
+        } catch (err) {
+          console.warn("Error closing Hand MediaPipe resources:", err);
+        }
+      }
     };
   }, [config]);
 
   return {
     poseLandmarker,
+    handLandmarker,
     isLoading,
     error,
   };

@@ -1,11 +1,11 @@
 import {NormalizedLandmark} from "@mediapipe/tasks-vision";
 import * as THREE from 'three';
 
-export function getQuaternionFromRot(R: THREE.Matrix3) {
-    const q = new THREE.Quaternion();
+export function getQuaternionFromRot(R: THREE.Matrix3, targetQuat?: THREE.Quaternion) {
+    const q = targetQuat || new THREE.Quaternion();
     const T = new THREE.Matrix4();
     T.setFromMatrix3(R);
-    q.setFromRotationMatrix(T); // confusing naming - it requires a transformation matrix
+    q.setFromRotationMatrix(T); 
     return q
 }
 

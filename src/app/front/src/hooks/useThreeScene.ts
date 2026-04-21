@@ -1,18 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { ModelViewerRef, ModelLoadResult, ModelAnimConfig } from '@/types';
+import type { ModelViewerRef, ModelLoadResult } from '@/types';
 import type { PoseDetectionResult } from '@/types';
-import { processAnimateJoint } from '@/lib/animate';
-
-export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
-  handLeft: "mixamorigLeftArm",
-  handRight: "mixamorigRightArm",
-  foreArmLeft: "mixamorigLeftForeArm",
-  foreArmRight: "mixamorigRightForeArm",
-  armLeft: "mixamorigLeftArm",
-  armRight: "mixamorigRightArm",
-}
+import { processAnimateJoint, processHandJoint, getHipsTranslationAndRotation } from '@/lib/animate';
+import { ANIM_JOINTS_CONFIG, LIMB_CONFIGS, FINGER_PAIRS_LEFT, FINGER_PAIRS_RIGHT } from '@/lib/animate/boneConfig';
 
 export interface UseThreeSceneOptions {
   modelPath?: string;
@@ -28,6 +20,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const sceneRef = useRef<ModelViewerRef | null>(null);
   const animationIdRef = useRef<number | undefined>(undefined);
   const jointsCacheRef = useRef<Record<string, THREE.Object3D | null>>({});
+  const restPosesCacheRef = useRef<Record<string, THREE.Quaternion>>({});
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,8 +36,8 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9c9ca5)
 
-    const camera = new THREE.PerspectiveCamera(50, width/height, 0.1, 2000);
-    camera.position.set(0, 130, 150);
+    const camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 2000);
+    camera.position.set(0, 100, 300); // 300, żeby na 100% zmieścić całego robota!
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
@@ -91,6 +84,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         if (child.isMesh && !child.isSkinnedMesh) {
           child.visible = false;
         }
+        if (child.isBone) {
+          restPosesCacheRef.current[child.name] = child.quaternion.clone();
+        }
       });
 
       if (sceneRef.current) {
@@ -117,7 +113,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
     const pose = poseRef?.current;
 
-    const scratchQuat = new THREE.Quaternion();
+    const scratchWorldQuat = new THREE.Quaternion();
+    const scratchLocalQuat = new THREE.Quaternion();
+    const fallbackRestPose = new THREE.Quaternion();
 
     const getCachedJoint = (name: string) => {
       if (jointsCacheRef.current[name] === undefined) {
@@ -126,37 +124,58 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       return jointsCacheRef.current[name];
     };
 
-    if (pose) {
-      const armLeft = getCachedJoint(ANIM_JOINTS_CONFIG.armLeft);
-      if(armLeft && armLeft.parent){
-        const animData = processAnimateJoint(pose, 'arm_left');
-        armLeft.parent.updateWorldMatrix(true, false);
-        armLeft.parent.getWorldQuaternion(scratchQuat);
-        armLeft.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
+    if (pose && pose.worldLandmarks && pose.worldLandmarks.length > 0) {
+      
+      // Wyłączamy bezpośrednie modyfikowanie pozycji miednicy (T-pose anchor)
+      // aby zapobiec unoszeniu modelu do góry nogami przez root motion.
+      // Model pozostaje centralnie, a kończyny śledzą użytkownika.
+
+      for (const {name, process} of LIMB_CONFIGS) {
+          const joint = getCachedJoint(name);
+          if(joint && joint.parent) {
+              const animData = processAnimateJoint(pose, process);
+              joint.parent.updateWorldMatrix(true, false);
+              
+              const restPose = restPosesCacheRef.current[name] || fallbackRestPose;
+              joint.parent.getWorldQuaternion(scratchWorldQuat);
+              
+              scratchLocalQuat.copy(scratchWorldQuat).invert().multiply(animData).multiply(restPose);
+              joint.quaternion.copy(scratchLocalQuat);
+          }
       }
 
-      const foreArmLeft = getCachedJoint(ANIM_JOINTS_CONFIG.foreArmLeft);
-      if(foreArmLeft && foreArmLeft.parent){
-        const animData = processAnimateJoint(pose, 'forearm_left');
-        foreArmLeft.parent.updateWorldMatrix(true, false);
-        foreArmLeft.parent.getWorldQuaternion(scratchQuat);
-        foreArmLeft.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
+      if (pose.leftHandWorldLandmarks && pose.leftHandWorldLandmarks.length > 0) {
+          const handMarks = pose.leftHandWorldLandmarks[0];
+          for (const {name, pStart, pEnd} of FINGER_PAIRS_LEFT) {
+              const joint = getCachedJoint(name);
+              if(joint && joint.parent) {
+                  const animData = processHandJoint(handMarks, pStart, pEnd);
+                  joint.parent.updateWorldMatrix(true, false);
+                  
+                  const restPose = restPosesCacheRef.current[name] || fallbackRestPose;
+                  joint.parent.getWorldQuaternion(scratchWorldQuat);
+                  
+                  scratchLocalQuat.copy(scratchWorldQuat).invert().multiply(animData).multiply(restPose);
+                  joint.quaternion.copy(scratchLocalQuat);
+              }
+          }
       }
 
-      const armRight = getCachedJoint(ANIM_JOINTS_CONFIG.armRight);
-      if(armRight && armRight.parent){
-        const animData = processAnimateJoint(pose, 'arm_right');
-        armRight.parent.updateWorldMatrix(true, false);
-        armRight.parent.getWorldQuaternion(scratchQuat);
-        armRight.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
-      }
-
-      const foreArmRight = getCachedJoint(ANIM_JOINTS_CONFIG.foreArmRight);
-      if(foreArmRight && foreArmRight.parent){
-        const animData = processAnimateJoint(pose, 'forearm_right');
-        foreArmRight.parent.updateWorldMatrix(true, false);
-        foreArmRight.parent.getWorldQuaternion(scratchQuat);
-        foreArmRight.quaternion.copy(scratchQuat.clone().invert().multiply(animData));
+      if (pose.rightHandWorldLandmarks && pose.rightHandWorldLandmarks.length > 0) {
+          const handMarks = pose.rightHandWorldLandmarks[0];
+          for (const {name, pStart, pEnd} of FINGER_PAIRS_RIGHT) {
+              const joint = getCachedJoint(name);
+              if(joint && joint.parent) {
+                  const animData = processHandJoint(handMarks, pStart, pEnd);
+                  joint.parent.updateWorldMatrix(true, false);
+                  
+                  const restPose = restPosesCacheRef.current[name] || fallbackRestPose;
+                  joint.parent.getWorldQuaternion(scratchWorldQuat);
+                  
+                  scratchLocalQuat.copy(scratchWorldQuat).invert().multiply(animData).multiply(restPose);
+                  joint.quaternion.copy(scratchLocalQuat);
+              }
+          }
       }
     }
 
