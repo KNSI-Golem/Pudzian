@@ -69,7 +69,7 @@ export function ModelViewer({
       <div 
         ref={mountRef} 
         className="w-full h-full"
-        style={{ minHeight: '400px' }}
+        style={{ minHeight: '400px', transform: 'scaleX(-1)' }}
       />
     </div>
   );

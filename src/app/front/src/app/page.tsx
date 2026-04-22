@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { VideoStream, ModelViewer } from '@/components/video';
 import { Button, ViewPanel, AwakeningGrid } from '@/components/ui';
+import { PerformanceHUD } from '@/components/ui/PerformanceHUD';
 import type { GolemUIState, PoseDetectionResult } from '@/types';
 
 export default function Home() {
@@ -36,7 +37,8 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
+    <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center relative">
+      {!uiState.showInitialView && <PerformanceHUD />}
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
         
         <ViewPanel className="aspect-[4/3]">

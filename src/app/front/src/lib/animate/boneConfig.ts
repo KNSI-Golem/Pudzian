@@ -4,6 +4,13 @@ import { ModelAnimConfig } from '@/types';
 // W przypadku Mixamo bez prefixów Assimp:
 export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
   hips: "mixamorigHips",
+  spine: "mixamorigSpine",
+  spine1: "mixamorigSpine1",
+  spine2: "mixamorigSpine2",
+  neck: "mixamorigNeck",
+  head: "mixamorigHead",
+  shoulderLeft: "mixamorigLeftShoulder",
+  shoulderRight: "mixamorigRightShoulder",
   
   upLegLeft: "mixamorigLeftUpLeg",
   legLeft: "mixamorigLeftLeg",
@@ -55,13 +62,11 @@ export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
 
 export const LIMB_CONFIGS = [
     { name: ANIM_JOINTS_CONFIG.armLeft, process: 'arm_left' },
-    { name: ANIM_JOINTS_CONFIG.foreArmLeft, process: 'forearm_left' },
     { name: ANIM_JOINTS_CONFIG.upLegLeft, process: 'upleg_left' },
     { name: ANIM_JOINTS_CONFIG.legLeft, process: 'leg_left' },
     { name: ANIM_JOINTS_CONFIG.footLeft, process: 'foot_left' },
     
     { name: ANIM_JOINTS_CONFIG.armRight, process: 'arm_right' },
-    { name: ANIM_JOINTS_CONFIG.foreArmRight, process: 'forearm_right' },
     { name: ANIM_JOINTS_CONFIG.upLegRight, process: 'upleg_right' },
     { name: ANIM_JOINTS_CONFIG.legRight, process: 'leg_right' },
     { name: ANIM_JOINTS_CONFIG.footRight, process: 'foot_right' }

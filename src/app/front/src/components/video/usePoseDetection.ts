@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { PoseLandmarker, HandLandmarker } from '@mediapipe/tasks-vision';
 import { drawPoseLandmarks, clearCanvas, createDrawingUtils } from '@/lib/mediapipe';
 import type { PoseDetectionResult } from '@/types';
+import { perfTracker } from '@/lib/perf/perfTracker';
 
 interface PoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -49,10 +50,14 @@ export function usePoseDetection({
       if (lastVideoTimeRef.current !== videoElement.currentTime) {
         lastVideoTimeRef.current = videoElement.currentTime;
 
-        const [poseResultRaw, handResultRaw] = await Promise.all([
-          poseLandmarker.detectForVideo(videoElement, startTimeMs),
-          handLandmarker.detectForVideo(videoElement, startTimeMs)
-        ]);
+        perfTracker.markVideoFrame();
+        const pStart = perfTracker.startPose();
+        const poseResultRaw = await poseLandmarker.detectForVideo(videoElement, startTimeMs);
+        perfTracker.endPose(pStart);
+        
+        const hStart = perfTracker.startHand();
+        const handResultRaw = await handLandmarker.detectForVideo(videoElement, startTimeMs);
+        perfTracker.endHand(hStart);
 
         if (canvasCtxRef.current && drawingUtilsRef.current && poseResultRaw.landmarks.length > 0) {
           clearCanvas(canvasCtxRef.current, canvasElement.width, canvasElement.height);
@@ -65,12 +70,16 @@ export function usePoseDetection({
           if (handResultRaw.handedness.length > 0) {
             handResultRaw.handedness.forEach((handednessList, index) => {
               const category = handednessList[0].categoryName;
+              // Złota zasada MediaPipe: PoseLandmarker odwraca handedness poprawnie do osoby (Fizyczna Prawa = Right),
+              // ale HandLandmarker klasycznie zakłada domyślny aparat 'selfie' i zwraca odwrotność ("Lewo" dla fizycznej prawej dłoni)!
+              // To dlatego palce zaciskały się po 2giej stronie ekranu!
+              // Zatem wymuszamy naprawę - HandLandmarker "Left" parujemy z PoseLandmarker `Right`.
               if (category === "Left") {
-                leftHandLandmarks = handResultRaw.landmarks[index];
-                leftHandWorldLandmarks = handResultRaw.worldLandmarks[index];
-              } else if (category === "Right") {
                 rightHandLandmarks = handResultRaw.landmarks[index];
                 rightHandWorldLandmarks = handResultRaw.worldLandmarks[index];
+              } else if (category === "Right") {
+                leftHandLandmarks = handResultRaw.landmarks[index];
+                leftHandWorldLandmarks = handResultRaw.worldLandmarks[index];
               }
             });
           }

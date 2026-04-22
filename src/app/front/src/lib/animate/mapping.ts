@@ -1,6 +1,19 @@
-import {AnimateMappingConfig, HAND_POINTS} from "@/types";
+import {AnimateMappingConfig} from "@/types";
 
 export const MEDIAPIPE_JOINTS_CONFIG: AnimateMappingConfig = {
+    // Głowa
+    nose: 0,
+    eyeInnerLeft: 1,
+    eyeLeft: 2,
+    eyeOuterLeft: 3,
+    eyeInnerRight: 4,
+    eyeRight: 5,
+    eyeOuterRight: 6,
+    earLeft: 7,
+    earRight: 8,
+    mouthLeft: 9,
+    mouthRight: 10,
+
     // Ręce
     handLeft: 19,
     handRight: 20,
@@ -27,24 +40,20 @@ export const MEDIAPIPE_JOINTS_CONFIG: AnimateMappingConfig = {
 }
 
 // Format: [P0_Start, P1_End_Dla_Rurki, P2_Punkt_Referencyjny_Plaszyzny]
-export const JOINT_POINTS_CONFIG: {[key: string]: number[]} = {
-    // Ramiona (P0: Shoulder, P1: Elbow, P2: Hip - tułów wyznacza roll)
+export const JOINT_POINTS_CONFIG: Record<string, number[]> = {
+    // Lewa strona anatomiczna MediaPipe kontroluje lewą stronę anatomiczną Modelu.
+    // Dzięki temu, przy obróconym kamerą ujęciu, to co jest po Prawej stronie ekranu w kamerze (User Left)
+    // kontroluje to co jest po Prawej stronie ekranu na robocie (Model Left).
+    // Idealne, wprost 1:1 zachowanie odbicia przestrzennego bez krzyżowania.
     'arm_left': [MEDIAPIPE_JOINTS_CONFIG.shoulderLeft, MEDIAPIPE_JOINTS_CONFIG.armLeft, MEDIAPIPE_JOINTS_CONFIG.hipLeft],
-    'arm_right': [MEDIAPIPE_JOINTS_CONFIG.shoulderRight, MEDIAPIPE_JOINTS_CONFIG.armRight, MEDIAPIPE_JOINTS_CONFIG.hipRight],
-    
-    // Przedramiona (P0: Elbow, P1: Wrist, P2: Shoulder - ramię wyznacza roll)
     'forearm_left': [MEDIAPIPE_JOINTS_CONFIG.armLeft, MEDIAPIPE_JOINTS_CONFIG.foreArmLeft, MEDIAPIPE_JOINTS_CONFIG.shoulderLeft],
+    'upleg_left': [MEDIAPIPE_JOINTS_CONFIG.hipLeft, MEDIAPIPE_JOINTS_CONFIG.upLegLeft, MEDIAPIPE_JOINTS_CONFIG.legLeft], // Zmieniono p2 na Kostkę dla poprawnego wylosowania płaszczyzny ugięcia
+    'leg_left': [MEDIAPIPE_JOINTS_CONFIG.upLegLeft, MEDIAPIPE_JOINTS_CONFIG.legLeft, MEDIAPIPE_JOINTS_CONFIG.footLeft], // Zmieniono z hip na stopę
+    'foot_left': [MEDIAPIPE_JOINTS_CONFIG.legLeft, MEDIAPIPE_JOINTS_CONFIG.footLeft, MEDIAPIPE_JOINTS_CONFIG.heelLeft],
+
+    'arm_right': [MEDIAPIPE_JOINTS_CONFIG.shoulderRight, MEDIAPIPE_JOINTS_CONFIG.armRight, MEDIAPIPE_JOINTS_CONFIG.hipRight],
     'forearm_right': [MEDIAPIPE_JOINTS_CONFIG.armRight, MEDIAPIPE_JOINTS_CONFIG.foreArmRight, MEDIAPIPE_JOINTS_CONFIG.shoulderRight],
-    
-    // Nogi górne (P0: Hip, P1: Knee, P2: Drugie Biodro - płaska miednica wyznacza roll)
-    'upleg_left': [MEDIAPIPE_JOINTS_CONFIG.hipLeft, MEDIAPIPE_JOINTS_CONFIG.upLegLeft, MEDIAPIPE_JOINTS_CONFIG.hipRight],
-    'upleg_right': [MEDIAPIPE_JOINTS_CONFIG.hipRight, MEDIAPIPE_JOINTS_CONFIG.upLegRight, MEDIAPIPE_JOINTS_CONFIG.hipLeft],
-    
-    // Nogi dolne (P0: Knee, P1: Ankle, P2: Hip)
-    'leg_left': [MEDIAPIPE_JOINTS_CONFIG.upLegLeft, MEDIAPIPE_JOINTS_CONFIG.legLeft, MEDIAPIPE_JOINTS_CONFIG.hipLeft],
-    'leg_right': [MEDIAPIPE_JOINTS_CONFIG.upLegRight, MEDIAPIPE_JOINTS_CONFIG.legRight, MEDIAPIPE_JOINTS_CONFIG.hipRight],
-    
-    // Stopy (P0: Ankle, P1: Toe, P2: Knee)
-    'foot_left': [MEDIAPIPE_JOINTS_CONFIG.legLeft, MEDIAPIPE_JOINTS_CONFIG.footIndexLeft, MEDIAPIPE_JOINTS_CONFIG.upLegLeft],
-    'foot_right': [MEDIAPIPE_JOINTS_CONFIG.legRight, MEDIAPIPE_JOINTS_CONFIG.footIndexRight, MEDIAPIPE_JOINTS_CONFIG.upLegRight],
-}
+    'upleg_right': [MEDIAPIPE_JOINTS_CONFIG.hipRight, MEDIAPIPE_JOINTS_CONFIG.upLegRight, MEDIAPIPE_JOINTS_CONFIG.legRight], // LegRight
+    'leg_right': [MEDIAPIPE_JOINTS_CONFIG.upLegRight, MEDIAPIPE_JOINTS_CONFIG.legRight, MEDIAPIPE_JOINTS_CONFIG.footRight],
+    'foot_right': [MEDIAPIPE_JOINTS_CONFIG.legRight, MEDIAPIPE_JOINTS_CONFIG.footRight, MEDIAPIPE_JOINTS_CONFIG.heelRight]
+};

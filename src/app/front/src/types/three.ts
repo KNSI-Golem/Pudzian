@@ -3,6 +3,13 @@ import type { PoseDetectionResult } from './mediapipe';
 
 export interface ModelAnimConfig {
   hips: string;
+  spine: string;
+  spine1: string;
+  spine2: string;
+  neck: string;
+  head: string;
+  shoulderLeft: string;
+  shoulderRight: string;
   upLegLeft: string;
   legLeft: string;
   footLeft: string;
