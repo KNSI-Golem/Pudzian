@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 const LOCAL_Y = new THREE.Vector3(0, 1, 0);
 export const GLOBAL_RETURN_QUAT = new THREE.Quaternion();
+
 export function processAnimateJoint(poseDetection: PoseDetectionResult, jointName: string) {
     const joint_start = JOINT_POINTS_CONFIG[jointName][0];
     const joint_middle = JOINT_POINTS_CONFIG[jointName][1];
@@ -138,7 +139,9 @@ export function getQuaternionFromPoints(p0: THREE.Vector3, p1: THREE.Vector3, p2
     const uY = normalizeVector(vY);
     const uPlane = normalizeVector(vPlane);
 
-    let uX = getCrossProduct(uY, uPlane);
+    // Globalna konwencja osi: roll wyznaczamy jako Cross(Plane, Y), aby zachować
+    // spójny zwrot uX/uZ z bind pose modelu i uniknąć 180-stopniowych flipów.
+    let uX = getCrossProduct(uPlane, uY);
     if (uX.lengthSq() < 1e-6) {
         if (Math.abs(uY.x) < 0.9) {
              uX = normalizeVector(getCrossProduct(new THREE.Vector3(1, 0, 0), uY));

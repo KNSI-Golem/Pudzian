@@ -4,6 +4,9 @@ import { drawPoseLandmarks, clearCanvas, createDrawingUtils } from '@/lib/mediap
 import type { PoseDetectionResult } from '@/types';
 import { perfTracker } from '@/lib/perf/perfTracker';
 
+const LEFT_WRIST_IDX = 15;
+const RIGHT_WRIST_IDX = 16;
+
 interface PoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -67,13 +70,66 @@ export function usePoseDetection({
           let leftHandWorldLandmarks = undefined;
           let rightHandWorldLandmarks = undefined;
 
-          if (handResultRaw.handedness.length > 0) {
+          const distanceSq2D = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            return dx * dx + dy * dy;
+          };
+
+          const detectedHands = handResultRaw.landmarks
+            .map((landmarks, index) => ({
+              landmarks,
+              worldLandmarks: handResultRaw.worldLandmarks[index],
+              handedness: handResultRaw.handedness[index]?.[0]?.categoryName,
+            }))
+            .filter((h) => h.landmarks && h.landmarks[0]);
+
+          const poseLandmarks = poseResultRaw.landmarks[0];
+          const poseLeftWrist = poseLandmarks?.[LEFT_WRIST_IDX];
+          const poseRightWrist = poseLandmarks?.[RIGHT_WRIST_IDX];
+
+          // Przypisanie dłoni opieramy o odległość do nadgarstków z Pose,
+          // dzięki czemu nie przeskakują strony przy niepewnym handedness.
+          if (detectedHands.length > 0 && poseLeftWrist && poseRightWrist) {
+            const candidates = detectedHands
+              .map((h) => ({
+                ...h,
+                dLeft: distanceSq2D(h.landmarks[0], poseLeftWrist),
+                dRight: distanceSq2D(h.landmarks[0], poseRightWrist),
+              }))
+              .sort((a, b) => Math.min(a.dLeft, a.dRight) - Math.min(b.dLeft, b.dRight))
+              .slice(0, 2);
+
+            if (candidates.length === 1) {
+              const hand = candidates[0];
+              if (hand.dLeft <= hand.dRight) {
+                leftHandLandmarks = hand.landmarks;
+                leftHandWorldLandmarks = hand.worldLandmarks;
+              } else {
+                rightHandLandmarks = hand.landmarks;
+                rightHandWorldLandmarks = hand.worldLandmarks;
+              }
+            } else if (candidates.length === 2) {
+              const [h0, h1] = candidates;
+              const directCost = h0.dLeft + h1.dRight;
+              const swappedCost = h0.dRight + h1.dLeft;
+
+              if (directCost <= swappedCost) {
+                leftHandLandmarks = h0.landmarks;
+                leftHandWorldLandmarks = h0.worldLandmarks;
+                rightHandLandmarks = h1.landmarks;
+                rightHandWorldLandmarks = h1.worldLandmarks;
+              } else {
+                leftHandLandmarks = h1.landmarks;
+                leftHandWorldLandmarks = h1.worldLandmarks;
+                rightHandLandmarks = h0.landmarks;
+                rightHandWorldLandmarks = h0.worldLandmarks;
+              }
+            }
+          } else if (handResultRaw.handedness.length > 0) {
+            // Fallback dla sytuacji bez wiarygodnych nadgarstków z Pose.
             handResultRaw.handedness.forEach((handednessList, index) => {
               const category = handednessList[0].categoryName;
-              // Złota zasada MediaPipe: PoseLandmarker odwraca handedness poprawnie do osoby (Fizyczna Prawa = Right),
-              // ale HandLandmarker klasycznie zakłada domyślny aparat 'selfie' i zwraca odwrotność ("Lewo" dla fizycznej prawej dłoni)!
-              // To dlatego palce zaciskały się po 2giej stronie ekranu!
-              // Zatem wymuszamy naprawę - HandLandmarker "Left" parujemy z PoseLandmarker `Right`.
               if (category === "Left") {
                 rightHandLandmarks = handResultRaw.landmarks[index];
                 rightHandWorldLandmarks = handResultRaw.worldLandmarks[index];
@@ -98,6 +154,13 @@ export function usePoseDetection({
           }
 
           drawPoseLandmarks(canvasCtxRef.current, drawingUtilsRef.current, poseResult);
+        } else {
+          if (canvasCtxRef.current) {
+            clearCanvas(canvasCtxRef.current, canvasElement.width, canvasElement.height);
+          }
+          if (poseRef) {
+            poseRef.current = null;
+          }
         }
       }
 
@@ -124,7 +187,10 @@ export function usePoseDetection({
   const stopDetection = useCallback(() => {
     isRunningRef.current = false;
     lastVideoTimeRef.current = -1;
-  }, []);
+    if (poseRef) {
+      poseRef.current = null;
+    }
+  }, [poseRef]);
 
   useEffect(() => {
     if (isActive && poseLandmarker && handLandmarker) {

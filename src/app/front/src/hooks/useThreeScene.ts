@@ -24,7 +24,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const jointsCacheRef = useRef<Record<string, THREE.Object3D | null>>({});
   const restPosesCacheRef = useRef<Record<string, THREE.Quaternion>>({});
   const worldRestPosesCacheRef = useRef<Record<string, THREE.Quaternion>>({});
-  const hipsDeltaWorldRef = useRef<THREE.Quaternion>(new THREE.Quaternion());
+  const missingPoseFramesRef = useRef(0);
 
   const visibilityCountersRef = useRef<Record<string, number>>({});
   const visibilityStatesRef = useRef<Record<string, 'visible' | 'hidden'>>({});
@@ -133,18 +133,31 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
     const pose = poseRef?.current;
     if (!pose || !pose.worldLandmarks || pose.worldLandmarks.length === 0 || !pose.landmarks?.[0]) {
+      missingPoseFramesRef.current += 1;
+      if (missingPoseFramesRef.current === 10) {
+        // Po dłuższej utracie trackingu czyścimy stany, żeby nie utrwalać błędnej gałęzi rotacji.
+        visibilityCountersRef.current = {};
+        visibilityStatesRef.current = {};
+      }
       animationIdRef.current = requestAnimationFrame(animate);
       return;
     }
+
+    missingPoseFramesRef.current = 0;
 
     const getStandardTPoseQuat = (boneName: string): THREE.Quaternion => {
       if (boneName.includes('UpLeg') || boneName.includes('Leg')) {
         // Noga: Y w dół (-1), Z w przód (1)
         return getStandardWorldQuat(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1));
       }
-      if (boneName.includes('Shoulder') || boneName.includes('Arm') || boneName.includes('Hand') || boneName.includes('Finger') || boneName.includes('Thumb') || boneName.toLowerCase().includes('index') || boneName.toLowerCase().includes('middle') || boneName.toLowerCase().includes('ring') || boneName.toLowerCase().includes('pinky')) {
+      if (boneName.includes('Shoulder')) {
         const isLeft = boneName.toLowerCase().includes('left');
-        // Bark/Ramię/Dłoń/Palec: Y w bok (L:1, R:-1), Z w DÓŁ (0, -1, 0) - standard Mixamo dłonie płasko do ziemi
+        // Barki orientujemy względem frontu torsu (+Z), jak w processShoulder.
+        return getStandardWorldQuat(new THREE.Vector3(isLeft ? 1 : -1, 0, 0), new THREE.Vector3(0, 0, 1));
+      }
+      if (boneName.includes('Arm') || boneName.includes('Hand') || boneName.includes('Finger') || boneName.includes('Thumb') || boneName.toLowerCase().includes('index') || boneName.toLowerCase().includes('middle') || boneName.toLowerCase().includes('ring') || boneName.toLowerCase().includes('pinky')) {
+        const isLeft = boneName.toLowerCase().includes('left');
+        // Ramię/Dłoń/Palec: Y w bok (L:1, R:-1), Z w dół (0, -1, 0)
         return getStandardWorldQuat(new THREE.Vector3(isLeft ? 1 : -1, 0, 0), new THREE.Vector3(0, -1, 0));
       }
       if (boneName.includes('Foot')) {
@@ -158,6 +171,28 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     const scratchWorldQuat = new THREE.Quaternion();
     const scratchLocalQuat = new THREE.Quaternion();
     const fallbackRestPose = new THREE.Quaternion();
+    const halfTurnAroundLocalY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+    const scratchCurrentJointWorld = new THREE.Quaternion();
+
+    // For many joints there are two mathematically valid roll solutions (separated by 180 deg).
+    // Choose the one closer to the current joint orientation to avoid visible flip-jumps.
+    const buildStableTargetWorld = (
+      joint: THREE.Object3D,
+      liveQuat: THREE.Quaternion,
+      tPoseQuat: THREE.Quaternion,
+      worldRestPose: THREE.Quaternion
+    ): THREE.Quaternion => {
+      const invTPose = tPoseQuat.clone().invert();
+      const targetA = liveQuat.clone().multiply(invTPose).multiply(worldRestPose);
+      const targetB = liveQuat.clone().multiply(halfTurnAroundLocalY).multiply(invTPose).multiply(worldRestPose);
+
+      joint.updateWorldMatrix(true, false);
+      joint.getWorldQuaternion(scratchCurrentJointWorld);
+
+      const scoreA = Math.abs(scratchCurrentJointWorld.dot(targetA));
+      const scoreB = Math.abs(scratchCurrentJointWorld.dot(targetB));
+      return scoreB > scoreA ? targetB : targetA;
+    };
 
     const getCachedJoint = (name: string) => {
       if (jointsCacheRef.current[name] === undefined) {
@@ -193,10 +228,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     if (hipsJoint && hipsJoint.parent) {
       const result = getHipsTranslationAndRotation(pose);
       rootQuat = result.rootQuat;
-
-      // Zapisujemy deltaWorld miednicy dla kończyn w T-Pose (by nogi podążały za pochyleniem tułowia przy braku widoczności)
-      const tPoseHips = getStandardTPoseQuat(ANIM_JOINTS_CONFIG.hips);
-      hipsDeltaWorldRef.current.copy(rootQuat).multiply(tPoseHips.invert());
 
       hipsJoint.position.x = result.rootPos.x;
       hipsJoint.position.z = result.rootPos.z;
@@ -250,7 +281,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     const VISIBILITY_THRESHOLD = 0.2;
 
     for (const { name, process } of LIMB_CONFIGS) {
-      if (['spine', 'spine1', 'spine2', 'neck', 'head', 'hips', 'arm_left', 'arm_right', 'forearm_left', 'forearm_right', 'hand_left', 'hand_right', 'foot_left', 'foot_right', 'toe_left', 'toe_right'].includes(name)) {
+      // Stopy mają własną, dedykowaną ścieżkę (processFoot) poniżej.
+      // Pominięcie tutaj zapobiega konfliktowi dwóch różnych update'ów w tej samej klatce.
+      if (process === 'foot_left' || process === 'foot_right') {
         continue;
       }
 
@@ -293,18 +326,17 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
           }
         }
 
-        let deltaWorld: THREE.Quaternion;
         if (state === 'hidden') {
-          // Reset do T-pose relatywnego do miednicy
-          deltaWorld = hipsDeltaWorldRef.current.clone();
-        } else {
-          const liveQuat = processAnimateJoint(pose, process);
-          const tPoseQuat = getStandardTPoseQuat(name);
-          deltaWorld = liveQuat.clone().multiply(tPoseQuat.invert());
+          // W stanie hidden wracamy do lokalnego rest pose, żeby uniknąć akumulacji złego rolla.
+          const targetLocalRest = restPosesCacheRef.current[name] || new THREE.Quaternion();
+          joint.quaternion.slerp(targetLocalRest, 0.2);
+          continue;
         }
 
         const worldRestPose = worldRestPosesCacheRef.current[name] || fallbackRestPose;
-        const targetWorld = deltaWorld.multiply(worldRestPose);
+        const liveQuat = processAnimateJoint(pose, process);
+        const tPoseQuat = getStandardTPoseQuat(name);
+        const targetWorld = buildStableTargetWorld(joint, liveQuat, tPoseQuat, worldRestPose);
 
         joint.parent.updateWorldMatrix(true, false);
         joint.parent.getWorldQuaternion(scratchWorldQuat);
@@ -322,8 +354,13 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     feet.forEach(({ name, category }) => {
       const joint = getCachedJoint(name);
       if (joint && joint.parent) {
-        const ankleIdx = category === 'Left' ? 27 : 28;
-        const liveVisibility = pose.landmarks[0][ankleIdx]?.visibility ?? 1.0;
+        const ankleIdx = category === 'Left' ? MEDIAPIPE_JOINTS_CONFIG.legLeft : MEDIAPIPE_JOINTS_CONFIG.legRight;
+        const heelIdx = category === 'Left' ? MEDIAPIPE_JOINTS_CONFIG.heelLeft : MEDIAPIPE_JOINTS_CONFIG.heelRight;
+        const toeIdx = category === 'Left' ? MEDIAPIPE_JOINTS_CONFIG.footIndexLeft : MEDIAPIPE_JOINTS_CONFIG.footIndexRight;
+        const ankleVis = pose.landmarks[0][ankleIdx]?.visibility ?? 1.0;
+        const heelVis = pose.landmarks[0][heelIdx]?.visibility ?? ankleVis;
+        const toeVis = pose.landmarks[0][toeIdx]?.visibility ?? ankleVis;
+        const liveVisibility = Math.min(ankleVis, heelVis, toeVis);
 
         let state = visibilityStatesRef.current[name] || 'visible';
         let counter = visibilityCountersRef.current[name] || 0;
@@ -355,17 +392,16 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
           }
         }
 
-        let deltaWorld: THREE.Quaternion;
         if (state === 'hidden') {
-          deltaWorld = hipsDeltaWorldRef.current.clone();
-        } else {
-          const liveQuat = processFoot(pose, category);
-          const tPoseQuat = getStandardTPoseQuat(name);
-          deltaWorld = liveQuat.clone().multiply(tPoseQuat.invert());
+          const targetLocalRest = restPosesCacheRef.current[name] || new THREE.Quaternion();
+          joint.quaternion.slerp(targetLocalRest, 0.2);
+          return;
         }
 
         const worldRestPose = worldRestPosesCacheRef.current[name] || fallbackRestPose;
-        const targetWorld = deltaWorld.multiply(worldRestPose);
+        const liveQuat = processFoot(pose, category);
+        const tPoseQuat = getStandardTPoseQuat(name);
+        const targetWorld = buildStableTargetWorld(joint, liveQuat, tPoseQuat, worldRestPose);
 
         joint.parent.updateWorldMatrix(true, false);
         joint.parent.getWorldQuaternion(scratchWorldQuat);
@@ -419,18 +455,41 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         } else { visibilityCountersRef.current[elbowKey] = 0; }
       }
 
+      const wristVis = pose.landmarks[0][wristIdx]?.visibility ?? 1.0;
+      const foreArmKey = `forearm_${category}`;
+      let foreArmState = visibilityStatesRef.current[foreArmKey] || 'visible';
+      let foreArmCounter = visibilityCountersRef.current[foreArmKey] || 0;
+      const foreArmVisible = elbowState === 'visible' && wristVis >= VISIBILITY_THRESHOLD;
+
+      if (foreArmState === 'visible') {
+        if (!foreArmVisible) {
+          if (foreArmCounter < HYSTERESIS_THRESHOLD) { visibilityCountersRef.current[foreArmKey] = foreArmCounter + 1; }
+          else { visibilityStatesRef.current[foreArmKey] = 'hidden'; visibilityCountersRef.current[foreArmKey] = 0; foreArmState = 'hidden'; }
+        } else { visibilityCountersRef.current[foreArmKey] = 0; }
+      } else {
+        if (foreArmVisible) {
+          if (foreArmCounter < HYSTERESIS_THRESHOLD) { visibilityCountersRef.current[foreArmKey] = foreArmCounter + 1; }
+          else { visibilityStatesRef.current[foreArmKey] = 'visible'; visibilityCountersRef.current[foreArmKey] = 0; foreArmState = 'visible'; }
+        } else { visibilityCountersRef.current[foreArmKey] = 0; }
+      }
+
       // --- Krok 2: Forearm ---
       const foreArmJoint = getCachedJoint(foreArmName);
       if (foreArmJoint && foreArmJoint.parent) {
         let targetLocalForeArm: THREE.Quaternion;
-        if (elbowState === 'hidden') {
+        if (foreArmState === 'hidden') {
           // Przedrami\u0119 wyprostowane wzgl\u0119dem ramienia (lokalny T-pose)
           targetLocalForeArm = restPosesCacheRef.current[foreArmName] || new THREE.Quaternion();
         } else {
           const handMarks = marks && marks.length > 0 ? marks[0] : undefined;
           const liveQuat = processForearmHybrid(pose, category === 'Left' ? 'forearm_left' : 'forearm_right', handMarks);
           const tPoseQuat = new THREE.Quaternion().setFromRotationMatrix(foreArmTpose);
-          const foreArmTargetWorld = liveQuat.clone().multiply(tPoseQuat.invert()).multiply(worldRestPosesCacheRef.current[foreArmName] || fallbackRestPose);
+          const foreArmTargetWorld = buildStableTargetWorld(
+            foreArmJoint,
+            liveQuat,
+            tPoseQuat,
+            worldRestPosesCacheRef.current[foreArmName] || fallbackRestPose
+          );
           
           foreArmJoint.parent.updateWorldMatrix(true, false);
           foreArmJoint.parent.getWorldQuaternion(scratchWorldQuat);
@@ -441,11 +500,10 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
       // --- Krok 3: Widoczność dłoni ---
       const hasHandMarks = marks && marks.length > 0;
-      const wristVis = pose.landmarks[0][wristIdx]?.visibility ?? 1.0;
       const handKey = handName;
       let handState = visibilityStatesRef.current[handKey] || 'visible';
       let handCounter = visibilityCountersRef.current[handKey] || 0;
-      const handVisible = elbowState === 'visible' && wristVis >= VISIBILITY_THRESHOLD && hasHandMarks;
+      const handVisible = foreArmState === 'visible' && wristVis >= VISIBILITY_THRESHOLD && hasHandMarks;
 
       if (handState === 'visible') {
         if (!handVisible) {
