@@ -23,7 +23,7 @@ export function usePoseDetection({
   const drawingUtilsRef = useRef<any>(null);
   const canvasCtxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  const predictPosture = useCallback(async () => {
+  const predictPosture = useCallback(() => {
     const videoElement = videoRef.current;
     const canvasElement = canvasRef.current;
 
@@ -31,27 +31,26 @@ export function usePoseDetection({
       return;
     }
 
-    if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+    if (videoElement.readyState < 2 || videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
       if (isRunningRef.current) {
         requestAnimationFrame(predictPosture);
       }
       return;
     }
 
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
+    if (canvasElement.width !== videoElement.videoWidth) canvasElement.width = videoElement.videoWidth;
+    if (canvasElement.height !== videoElement.videoHeight) canvasElement.height = videoElement.videoHeight;
 
-    const startTimeMs = performance.now();
+    if (lastVideoTimeRef.current !== videoElement.currentTime) {
+      lastVideoTimeRef.current = videoElement.currentTime;
 
-    try {
-      if (lastVideoTimeRef.current !== videoElement.currentTime) {
-        lastVideoTimeRef.current = videoElement.currentTime;
-        
-        const result = await poseLandmarker.detectForVideo(videoElement, startTimeMs);
-        
+      try {
+        const startTimeMs = performance.now();
+        const result = poseLandmarker.detectForVideo(videoElement, startTimeMs);
+
         if (canvasCtxRef.current && drawingUtilsRef.current && result.landmarks.length > 0) {
           clearCanvas(canvasCtxRef.current, canvasElement.width, canvasElement.height);
-          
+
           const poseResult: PoseDetectionResult = {
             landmarks: result.landmarks,
             worldLandmarks: result.worldLandmarks,
@@ -60,16 +59,16 @@ export function usePoseDetection({
           if (poseRef) {
             poseRef.current = poseResult;
           }
-          
+
           drawPoseLandmarks(canvasCtxRef.current, drawingUtilsRef.current, poseResult);
         }
+      } catch (error) {
+        console.error("detectForVideo error:", error);
       }
+    }
 
-      if (isRunningRef.current) {
-        requestAnimationFrame(predictPosture);
-      }
-    } catch (error) {
-      console.error("Error during pose detection:", error);
+    if (isRunningRef.current) {
+      requestAnimationFrame(predictPosture);
     }
   }, [videoRef, canvasRef, poseLandmarker, isActive, poseRef]);
 
