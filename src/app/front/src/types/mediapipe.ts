@@ -4,10 +4,6 @@ import {
 } from "@mediapipe/tasks-vision";
 
 export interface MediaPipeConfig {
-  baseOptions: {
-    modelAssetPath: string;
-    delegate: "GPU" | "CPU";
-  };
   runningMode: "VIDEO" | "IMAGE";
   numPoses: number;
 }
