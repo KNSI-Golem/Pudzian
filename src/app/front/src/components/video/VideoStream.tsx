@@ -9,21 +9,25 @@ import { CameraPlaceholder } from '@/components';
 import { usePoseDetection } from '@/components';
 import { PoseDetectionResult } from '@/types';
 import { CalibrateOutline } from './CalibrateOutline';
+import { CalibrationStatus } from '@/types/calibrate';
 
 interface VideoStreamProps {
   isStreaming: boolean;
   className?: string;
   onError?: (error: string) => void;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  calibrateStatus: CalibrationStatus;
 }
 
 export function VideoStream({ 
   isStreaming, 
   className = "",
   onError,
-  poseRef
+  poseRef,
+  videoRef,
+  calibrateStatus
 }: VideoStreamProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const { poseLandmarker, isLoading: isMediaPipeLoading, error: mediaPipeError } = useMediaPipe();
@@ -89,7 +93,7 @@ return (
           />
           
           <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
-            <CalibrateOutline poseRef={poseRef} videoRef={videoRef} />
+            <CalibrateOutline calibrateStatus={calibrateStatus} />
           </div>
         </div>
       ) : (

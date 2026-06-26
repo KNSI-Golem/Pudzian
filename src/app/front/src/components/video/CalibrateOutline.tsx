@@ -1,36 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useCalibrate } from '@/hooks';
 import { PoseDetectionResult } from '@/types';
+import {CalibrationStatus} from '@/types/calibrate';
 
 interface CalibrateOutlineOptions {
-    poseRef?: React.RefObject<PoseDetectionResult | null>;
-    videoRef?: React.RefObject<HTMLVideoElement | null>;
+    calibrateStatus: CalibrationStatus;
 }
 
-type CalibrationStatus = 'NO' | 'STARTED' | 'YES';
-
 export function CalibrateOutline(options: CalibrateOutlineOptions) {
-    const { poseRef, videoRef } = options;
-    const { success } = useCalibrate({ poseRef, videoRef});
+    const { calibrateStatus } = options;
 
-    const [calibrateStatus, setCalibrateStatus] = useState<CalibrationStatus>('NO');
     const [isVisible, setIsVisible] = useState<boolean>(true);
+    const [outlineSrc, setOutlineSrc] = useState<string>('/calibrate/golem-outline-red.svg');
+
 
     useEffect(() => {
-
-        if (success) {
-            setCalibrateStatus('STARTED');
-
-            const timer = setTimeout(() => {
-                setCalibrateStatus('YES');
-            }, 2000);
-
-            return () => clearTimeout(timer);
-        } else {
-            setCalibrateStatus('NO');
-            setIsVisible(true);
+                if (calibrateStatus === 'NO') {
+            setOutlineSrc('/calibrate/golem-outline-red.svg')
+        } else if (calibrateStatus === 'STARTED') {
+            setOutlineSrc('/calibrate/golem-outline-orange.svg')
+        } else if (calibrateStatus === 'YES') {
+            setOutlineSrc('/calibrate/golem-outline-green.svg')
         }
-    }, [success]);
+    }, [calibrateStatus]);
 
     useEffect(() => {
         if (calibrateStatus === 'YES') {
@@ -40,18 +32,13 @@ export function CalibrateOutline(options: CalibrateOutlineOptions) {
 
             return () => clearTimeout(fadeTimer);
         }
+
+        if (calibrateStatus === 'NO') {
+            setIsVisible(true);
+        }
     }, [calibrateStatus]);
 
     if (!isVisible) return null;
-
-    let outlineSrc;
-    if (calibrateStatus === 'NO') {
-        outlineSrc = '/calibrate/golem-outline-red.svg'
-    } else if (calibrateStatus === 'STARTED') {
-        outlineSrc ='/calibrate/golem-outline-orange.svg'
-    } else if (calibrateStatus === 'YES') {
-        outlineSrc = '/calibrate/golem-outline-green.svg'
-    }
 
     return ( 
         <div className="golem-outline w-3/4 max-w-lg h-auto flex items-center justify-center">

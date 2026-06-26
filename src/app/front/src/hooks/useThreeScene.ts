@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { ModelViewerRef, ModelLoadResult, ModelAnimConfig } from '@/types';
 import type { PoseDetectionResult } from '@/types';
 import { processAnimateJoint } from '@/lib/animate';
+import { CalibrationStatus } from '@/types/calibrate';
 
 export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
   handLeft: "mixamorigLeftArm",
@@ -17,11 +18,13 @@ export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
 export interface UseThreeSceneOptions {
   modelPath?: string;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
+  calibrateStatus?: CalibrationStatus;
 }
 export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const {
     modelPath,
-    poseRef
+    poseRef,
+    calibrateStatus
   } = options;
 
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -101,6 +104,11 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const animate = useCallback(() => {
     if (!sceneRef.current) return;
 
+    if (calibrateStatus !== 'YES') {
+      sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
+      return;
+    }
+
     const pose = poseRef?.current;
 
     // forearm left animation
@@ -142,7 +150,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
 
     animationIdRef.current = requestAnimationFrame(animate);
-  }, [poseRef]);
+  }, [poseRef, calibrateStatus]);
 
   const handleResize = useCallback(() => {
     if (!sceneRef.current || !mountRef.current) return;
