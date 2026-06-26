@@ -10,11 +10,13 @@ export function ModelViewer({
   className = "", 
   onError,
   onLoad,
-  poseRef 
+  poseRef,
+  calibrateStatus 
 }: ModelViewerProps) {
   const { mountRef, isLoading, error, model } = useThreeScene({
     modelPath: isActive ? modelPath : undefined,
     poseRef,
+    calibrateStatus
   });
 
   const lastErrorRef = useRef<string | null>(null);

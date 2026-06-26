@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { PoseDetectionResult } from './mediapipe';
+import type { CalibrationStatus } from './calibrate';
 
 export type ModelAnimConfig = {
   handLeft: string;
@@ -17,6 +18,7 @@ export type ModelViewerProps = {
   onError?: (error: string) => void;
   onLoad?: () => void;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
+  calibrateStatus?: CalibrationStatus;
 }
 
 export type ModelViewerRef = {
