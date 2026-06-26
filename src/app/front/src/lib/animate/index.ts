@@ -1,3 +1,3 @@
 export * from './utils';
 export * from './process';
-export * from './mapping';
+export * from '../mediapipe/mapping';
