@@ -8,6 +8,7 @@ import { VideoCanvas } from '@/components';
 import { CameraPlaceholder } from '@/components';
 import { usePoseDetection } from '@/components';
 import { PoseDetectionResult } from '@/types';
+import { CalibrateOutline } from './CalibrateOutline';
 
 interface VideoStreamProps {
   isStreaming: boolean;
@@ -77,14 +78,20 @@ export function VideoStream({
     );
   }
 
-  return (
+return (
     <div className={`w-full h-full ${className}`}>
       {isStreaming && stream ? (
-        <VideoCanvas
-          videoRef={videoRef}
-          canvasRef={canvasRef}
-          stream={stream}
-        />
+        <div className="relative w-full h-full item-center justify-center">
+          <VideoCanvas
+            videoRef={videoRef}
+            canvasRef={canvasRef}
+            stream={stream}
+          />
+          
+          <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
+            <CalibrateOutline poseRef={poseRef} videoRef={videoRef} />
+          </div>
+        </div>
       ) : (
         <CameraPlaceholder />
       )}
