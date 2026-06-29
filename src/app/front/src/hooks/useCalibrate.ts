@@ -8,31 +8,22 @@ interface UseCalibrateReturn {
 
 interface UseCalibrateOptions {
   poseRef?: React.RefObject<PoseDetectionResult | null>;
-  videoRef?: React.RefObject<HTMLVideoElement | null>;
 }
 
 export function useCalibrate(options: UseCalibrateOptions): UseCalibrateReturn {
-  const { poseRef, videoRef } = options;
+  const { poseRef } = options;
 
   const [success, setSuccess] = useState(false);
 
   const checkCalibration = useCallback(() => {
-
-    const videoElement = videoRef?.current;
-    if (!videoElement) return;
-
-    if (videoElement.readyState < 2 || videoElement.videoWidth === 0) return;
-
-    const width = videoElement.videoWidth;
-    const height = videoElement.videoHeight;
     
     const poseDetection = poseRef?.current;
 
     if (poseDetection) {
-      const calibrated = isCalibrated(poseDetection, width, height);
+      const calibrated = isCalibrated(poseDetection);
       setSuccess(calibrated);
     }
-  }, [poseRef, videoRef]);
+  }, [poseRef]);
 
   useEffect(() => {
     checkCalibration();

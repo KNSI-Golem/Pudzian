@@ -2,6 +2,7 @@ import { MediapipeJointMapping } from "@/types/mediapipe";
 
 
 export const MEDIAPIPE_JOINTS_MAPPING: MediapipeJointMapping = {
+    "nose": 0,
     "handLeft": 19,
     "handRight": 20,
     "foreArmLeft": 15,     
