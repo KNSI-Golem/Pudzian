@@ -39,7 +39,6 @@ export function useMediaPipe(config?: Partial<MediaPipeConfig>): MediaPipeHookRe
 
     return () => {
       mounted = false;
-      // Clean up MediaPipe resources if needed
       if (poseLandmarker) {
         try {
           poseLandmarker.close();
