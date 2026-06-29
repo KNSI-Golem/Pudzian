@@ -20,7 +20,7 @@ export default function Home() {
 
   const [calibrateStatus, setCalibrateStatus] = useState<CalibrationStatus>('NO');
 
-  const { success: isCalibrated } = useCalibrate({ poseRef, videoRef });
+  const { success: isCalibrated } = useCalibrate({ poseRef });
 
   const handleActivate = useCallback(() => {
     setUIState(prev => ({

@@ -7,4 +7,5 @@ export type CalibrateConfig = {
 export type CalibrateJointConfig = {
   joint_list: string[];
   visibility_threshold: number;
+  center_margin: number;
 }
