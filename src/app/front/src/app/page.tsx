@@ -1,18 +1,26 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { VideoStream, ModelViewer } from '@/components/video';
 import { Button, ViewPanel, AwakeningGrid } from '@/components/ui';
 import type { GolemUIState, PoseDetectionResult } from '@/types';
+import { useCalibrate } from '@/hooks';
+import { CalibrationStatus } from '@/types/calibrate';
 
 export default function Home() {
   const poseRef = useRef<PoseDetectionResult | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
   const [uiState, setUIState] = useState<GolemUIState>({
     isStreaming: false,
     showInitialView: true,
     isLoading: false,
     error: null,
   });
+
+  const [calibrateStatus, setCalibrateStatus] = useState<CalibrationStatus>('NO');
+
+  const { success: isCalibrated } = useCalibrate({ poseRef });
 
   const handleActivate = useCallback(() => {
     setUIState(prev => ({
@@ -34,6 +42,21 @@ export default function Home() {
       return prev;
     });
   }, []);
+
+  useEffect(() => {
+  
+    if (isCalibrated) {
+      setCalibrateStatus('STARTED');
+  
+      const timer = setTimeout(() => {
+        setCalibrateStatus('YES');
+      }, 2000);
+  
+      return () => clearTimeout(timer);
+      } else {
+        setCalibrateStatus('NO');
+      }
+  }, [isCalibrated]);
 
   return (
     <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
@@ -60,6 +83,8 @@ export default function Home() {
               isStreaming={uiState.isStreaming} 
               onError={handleError}
               poseRef={poseRef}
+              videoRef={videoRef}
+              calibrateStatus={calibrateStatus}
             />
           )}
         </ViewPanel>
@@ -76,6 +101,7 @@ export default function Home() {
               isActive={uiState.isStreaming}
               onError={handleError}
               poseRef={poseRef}
+              calibrateStatus={calibrateStatus}
             />
           )}
         </ViewPanel>

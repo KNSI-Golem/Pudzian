@@ -1,7 +1,7 @@
 import {NormalizedLandmark} from "@mediapipe/tasks-vision";
 import {getRotationMatrix, getCrossProduct, getQuaternionFromRot, getVectorFromPoints, landmarkToVector3, normalizeVector} from "@/lib/animate/utils";
 import {PoseDetectionResult} from "@/types";
-import {JOINT_POINTS_CONFIG} from "@/lib/animate/mapping";
+import {JOINT_POINTS_CONFIG} from "@/lib/mediapipe/mapping";
 
 
 export function processAnimateJoint(poseDetection: PoseDetectionResult, jointName: string) {

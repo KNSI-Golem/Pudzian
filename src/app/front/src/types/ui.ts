@@ -1,11 +1,11 @@
-export interface GolemUIState {
+export type GolemUIState = {
   isStreaming: boolean;
   showInitialView: boolean;
   isLoading: boolean;
   error: string | null;
 }
 
-export interface ButtonProps {
+export type ButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -14,13 +14,13 @@ export interface ButtonProps {
   className?: string;
 }
 
-export interface ViewPanelProps {
+export type ViewPanelProps = {
   children: React.ReactNode;
   title?: string;
   className?: string;
 }
 
-export interface AwakeningGridProps {
+export type AwakeningGridProps = {
   cellCount?: number;
   animationDelay?: number;
   className?: string;
