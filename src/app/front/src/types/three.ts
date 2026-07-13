@@ -2,15 +2,6 @@ import * as THREE from 'three';
 import type { PoseDetectionResult } from './mediapipe';
 import type { CalibrationStatus } from './calibrate';
 
-export type ModelAnimConfig = {
-  handLeft: string;
-  handRight: string;
-  foreArmLeft: string;
-  foreArmRight: string;
-  armLeft: string;
-  armRight: string;
-}
-
 export type ModelViewerProps = {
   modelPath: string;
   isActive: boolean;

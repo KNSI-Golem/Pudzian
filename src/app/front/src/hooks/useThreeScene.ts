@@ -5,15 +5,7 @@ import type { ModelViewerRef, ModelLoadResult, ModelAnimConfig } from '@/types';
 import type { PoseDetectionResult } from '@/types';
 import { processAnimateJoint } from '@/lib/animate';
 import { CalibrationStatus } from '@/types/calibrate';
-
-export const ANIM_JOINTS_CONFIG: ModelAnimConfig = {
-  handLeft: "mixamorigLeftArm", // wrong 
-  handRight: "mixamorigRightArm", // wrong
-  foreArmLeft: "mixamorigLeftForeArm",
-  foreArmRight: "mixamorigRightForeArm",
-  armLeft: "mixamorigLeftArm",
-  armRight: "mixamorigRightArm",
-}
+import { ANIM_JOINTS_CONFIG } from '@/lib/animate/config';
 
 export interface UseThreeSceneOptions {
   modelPath?: string;
