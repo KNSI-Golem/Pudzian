@@ -60,11 +60,6 @@ export interface ModelAnimConfig {
   pinky3Right: string;
 }
 
-export const TARGET_MODELS = {
-  v1: "/models/result.gltf",
-  clean: "/models/Final_Cleaned_Model.glb"
-};
-
 export interface ModelViewerProps {
   modelPath: string;
   isActive: boolean;
