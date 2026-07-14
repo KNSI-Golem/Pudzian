@@ -7,6 +7,7 @@ import { processAnimateJoint, processHandJoint, getHipsTranslationAndRotation, p
 import { ANIM_JOINTS_CONFIG, LIMB_CONFIGS, FINGER_PAIRS_LEFT, FINGER_PAIRS_RIGHT } from '@/lib/animate/boneConfig';
 import { JOINT_POINTS_CONFIG, MEDIAPIPE_JOINTS_CONFIG } from '@/lib/animate/mapping';
 import { perfTracker } from '@/lib/perf/perfTracker';
+import {QUAT_FOREARM_LEFT_TPOSE, QUAT_FOREARM_RIGHT_TPOSE, QUAT_HAND_LEFT_TPOSE, QUAT_HAND_RIGHT_TPOSE, TURN_180_LOCAL_Y} from "@/lib/animate/constants";
 
 export interface UseThreeSceneOptions {
   modelPath?: string;
@@ -28,7 +29,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
   const visibilityCountersRef = useRef<Record<string, number>>({});
   const visibilityStatesRef = useRef<Record<string, 'visible' | 'hidden'>>({});
-  const HYSTERESIS_THRESHOLD = 3; // Obniżony próg dla szybszej reakcji
+  const HYSTERESIS_THRESHOLD = 3;
   const VISIBILITY_THRESHOLD = 0.2;
 
   const [isLoading, setIsLoading] = useState(false);
@@ -147,31 +148,25 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
     const getStandardTPoseQuat = (boneName: string): THREE.Quaternion => {
       if (boneName.includes('UpLeg') || boneName.includes('Leg')) {
-        // Noga: Y w dół (-1), Z w przód (1)
         return getStandardWorldQuat(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1));
       }
       if (boneName.includes('Shoulder')) {
         const isLeft = boneName.toLowerCase().includes('left');
-        // Barki orientujemy względem frontu torsu (+Z), jak w processShoulder.
         return getStandardWorldQuat(new THREE.Vector3(isLeft ? 1 : -1, 0, 0), new THREE.Vector3(0, 0, 1));
       }
       if (boneName.includes('Arm') || boneName.includes('Hand') || boneName.includes('Finger') || boneName.includes('Thumb') || boneName.toLowerCase().includes('index') || boneName.toLowerCase().includes('middle') || boneName.toLowerCase().includes('ring') || boneName.toLowerCase().includes('pinky')) {
         const isLeft = boneName.toLowerCase().includes('left');
-        // Ramię/Dłoń/Palec: Y w bok (L:1, R:-1), Z w dół (0, -1, 0)
         return getStandardWorldQuat(new THREE.Vector3(isLeft ? 1 : -1, 0, 0), new THREE.Vector3(0, -1, 0));
       }
       if (boneName.includes('Foot')) {
-        // Stopa: Y w przód (1), Z w górę (czyli forward dla bazy to Up 0,1,0)
         return getStandardWorldQuat(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
       }
-      // Tułów/Głowa: Y w górę (1), Z w przód (1)
       return getStandardWorldQuat(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
     };
 
     const scratchWorldQuat = new THREE.Quaternion();
     const scratchLocalQuat = new THREE.Quaternion();
     const fallbackRestPose = new THREE.Quaternion();
-    const halfTurnAroundLocalY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     const scratchCurrentJointWorld = new THREE.Quaternion();
 
     // For many joints there are two mathematically valid roll solutions (separated by 180 deg).
@@ -184,7 +179,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     ): THREE.Quaternion => {
       const invTPose = tPoseQuat.clone().invert();
       const targetA = liveQuat.clone().multiply(invTPose).multiply(worldRestPose);
-      const targetB = liveQuat.clone().multiply(halfTurnAroundLocalY).multiply(invTPose).multiply(worldRestPose);
+      const targetB = liveQuat.clone().multiply(TURN_180_LOCAL_Y).multiply(invTPose).multiply(worldRestPose);
 
       joint.updateWorldMatrix(true, false);
       joint.getWorldQuaternion(scratchCurrentJointWorld);
@@ -401,7 +396,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         const liveQuat = processFoot(pose, category);
         const tPoseQuat = getStandardTPoseQuat(name);
         const targetWorld = buildStableTargetWorld(joint, liveQuat, tPoseQuat, worldRestPose);
-
         joint.parent.updateWorldMatrix(true, false);
         joint.parent.getWorldQuaternion(scratchWorldQuat);
         scratchLocalQuat.copy(scratchWorldQuat).invert().multiply(targetWorld);
@@ -415,27 +409,27 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     const ARM_CONFIGS = [
       {
         category: 'Left' as const,
-        elbowIdx: MEDIAPIPE_JOINTS_CONFIG.armLeft,         // landmark 13
-        wristIdx: MEDIAPIPE_JOINTS_CONFIG.foreArmLeft,     // landmark 15
+        elbowIdx: MEDIAPIPE_JOINTS_CONFIG.armLeft,
+        wristIdx: MEDIAPIPE_JOINTS_CONFIG.foreArmLeft,
         foreArmName: ANIM_JOINTS_CONFIG.foreArmLeft,
         handName: ANIM_JOINTS_CONFIG.handLeft,
-        foreArmTpose: new THREE.Matrix4().makeBasis(new THREE.Vector3(0,1,0), new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,-1)),
+        tPoseQuat: QUAT_FOREARM_LEFT_TPOSE,
         fingerPairs: FINGER_PAIRS_LEFT,
         marks: pose.leftHandWorldLandmarks,
       },
       {
         category: 'Right' as const,
-        elbowIdx: MEDIAPIPE_JOINTS_CONFIG.armRight,        // landmark 14
-        wristIdx: MEDIAPIPE_JOINTS_CONFIG.foreArmRight,    // landmark 16
+        elbowIdx: MEDIAPIPE_JOINTS_CONFIG.armRight,
+        wristIdx: MEDIAPIPE_JOINTS_CONFIG.foreArmRight,
         foreArmName: ANIM_JOINTS_CONFIG.foreArmRight,
         handName: ANIM_JOINTS_CONFIG.handRight,
-        foreArmTpose: new THREE.Matrix4().makeBasis(new THREE.Vector3(0,-1,0), new THREE.Vector3(-1,0,0), new THREE.Vector3(0,0,-1)),
+        tPoseQuat: QUAT_FOREARM_RIGHT_TPOSE,
         fingerPairs: FINGER_PAIRS_RIGHT,
         marks: pose.rightHandWorldLandmarks,
       },
     ];
 
-    ARM_CONFIGS.forEach(({ category, elbowIdx, wristIdx, foreArmName, handName, foreArmTpose, fingerPairs, marks }) => {
+    ARM_CONFIGS.forEach(({ category, elbowIdx, wristIdx, foreArmName, handName, tPoseQuat, fingerPairs, marks }) => {
       // --- Krok 1: Widoczność łokcia ---
       const elbowKey = `elbow_${category}`;
       const elbowVis = pose.landmarks[0][elbowIdx]?.visibility ?? 1.0;
@@ -482,7 +476,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         } else {
           const handMarks = marks && marks.length > 0 ? marks[0] : undefined;
           const liveQuat = processForearmHybrid(pose, category === 'Left' ? 'forearm_left' : 'forearm_right', handMarks);
-          const tPoseQuat = new THREE.Quaternion().setFromRotationMatrix(foreArmTpose);
           const foreArmTargetWorld = buildStableTargetWorld(
             foreArmJoint,
             liveQuat,
@@ -520,12 +513,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       const handRoot = getCachedJoint(handName);
       if (!handRoot || !handRoot.parent) return;
 
-      // T-Pose dłoni (wynika z anatomii modelu: kciuk ±Z, palce ±X, grzbiet +Y)
       const tPoseHand = category === 'Left'
-        ? new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
-            new THREE.Vector3(0,0,1), new THREE.Vector3(1,0,0), new THREE.Vector3(0,1,0)))
-        : new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
-            new THREE.Vector3(0,0,-1), new THREE.Vector3(-1,0,0), new THREE.Vector3(0,1,0)));
+        ? QUAT_HAND_LEFT_TPOSE
+        : QUAT_HAND_RIGHT_TPOSE;
 
       let targetLocalHand: THREE.Quaternion;
       if (handState === 'hidden') {
