@@ -74,7 +74,7 @@ export default function Home() {
             </div>
           ) : (
             <ModelViewer 
-              modelPath="/models/Final_Cleaned_Model.glb"
+              modelPath="/models/mixamo_blue_person.glb"
               isActive={uiState.isStreaming}
               onError={handleError}
               poseRef={poseRef}
