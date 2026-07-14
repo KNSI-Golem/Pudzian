@@ -43,7 +43,7 @@ export function processForearmHybrid(poseDetection: PoseDetectionResult, jointNa
     const uX = normalizeVector(getCrossProduct(uY, uZ));
     
     const R = getRotationMatrix(uX, uY, uZ);
-    return getQuaternionFromRot(R, GLOBAL_RETURN_QUAT);
+    return getQuaternionFromRot(R);
 }
 
 export function processHandRoot(handMarks: NormalizedLandmark[], isLeft: boolean) {
@@ -119,7 +119,7 @@ export function getStandardWorldQuat(vY: THREE.Vector3, vForward: THREE.Vector3)
     const uZ = normalizeVector(getCrossProduct(uX, uY));
     
     const R = getRotationMatrix(uX, uY, uZ);
-    return getQuaternionFromRot(R, new THREE.Quaternion());
+    return getQuaternionFromRot(R);
 }
 
 export function getQuaternionFromLandmarks(nl0: NormalizedLandmark,
@@ -156,7 +156,7 @@ export function getQuaternionFromPoints(p0: THREE.Vector3, p1: THREE.Vector3, p2
 
     const R = getRotationMatrix(uX, uY, uZ);
 
-    return getQuaternionFromRot(R, GLOBAL_RETURN_QUAT);
+    return getQuaternionFromRot(R);
 }
 
 export function processSpine(poseDetection: PoseDetectionResult) {
@@ -250,5 +250,5 @@ export function processFoot(poseDetection: PoseDetectionResult, category: 'Left'
     const uZ = normalizeVector(getCrossProduct(uX, uY));
 
     const R = getRotationMatrix(uX, uY, uZ);
-    return getQuaternionFromRot(R, GLOBAL_RETURN_QUAT);
+    return getQuaternionFromRot(R);
 }
