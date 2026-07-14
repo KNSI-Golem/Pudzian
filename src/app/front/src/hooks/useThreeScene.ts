@@ -278,7 +278,6 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       }
     });
 
-    const VISIBILITY_THRESHOLD = 0.2;
 
     for (const { name, process } of LIMB_CONFIGS) {
       // Stopy mają własną, dedykowaną ścieżkę (processFoot) poniżej.
