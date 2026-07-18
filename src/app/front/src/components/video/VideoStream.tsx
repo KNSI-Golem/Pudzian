@@ -30,7 +30,13 @@ export function VideoStream({
 }: VideoStreamProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { poseLandmarker, isLoading: isMediaPipeLoading, error: mediaPipeError } = useMediaPipe();
+  const {
+    poseLandmarker,
+    handLandmarker,
+    isLoading: isMediaPipeLoading,
+    error: mediaPipeError,
+    handError,
+  } = useMediaPipe();
 
   const { 
     stream, 
@@ -44,6 +50,7 @@ export function VideoStream({
     videoRef,
     canvasRef,
     poseLandmarker,
+    handLandmarker,
     isActive: isStreaming && isActive,
     poseRef
   });
@@ -62,6 +69,12 @@ export function VideoStream({
       onError(formatErrorMessage(error));
     }
   }, [mediaPipeError, streamError, onError]);
+
+  useEffect(() => {
+    if (handError) {
+      console.warn("Hand tracking is unavailable; body tracking will continue", handError);
+    }
+  }, [handError]);
 
   if (isStreaming && (isMediaPipeLoading || !poseLandmarker)) {
     return (
