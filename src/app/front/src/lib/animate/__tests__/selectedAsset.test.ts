@@ -6,8 +6,16 @@ import * as THREE from "three";
 import {
   BODY_BONE_CONFIG,
   EXPECTED_BONE_PARENTS,
+  LEFT_FINGER_CHAINS,
   MIXAMO_BONE_NAMES,
+  RIGHT_FINGER_CHAINS,
+  type RetargetBoneId,
 } from "../boneConfig";
+import {
+  createHandReference,
+  mapSourceFrameToTargetFrame,
+  solveHandWorldTargets,
+} from "../handRetarget";
 import { buildRetargetRig } from "../rig";
 
 type GltfNode = {
@@ -47,6 +55,35 @@ function localMatrix(node: GltfNode): THREE.Matrix4 {
     new THREE.Quaternion().fromArray(node.rotation ?? [0, 0, 0, 1]),
     new THREE.Vector3().fromArray(node.scale ?? [1, 1, 1]),
   );
+}
+
+function buildSelectedRig(gltf: GltfJson) {
+  const joints = new Set(gltf.skins?.[0]?.joints ?? []);
+  const objects = gltf.nodes.map((node, index) => {
+    const object = joints.has(index)
+      ? new THREE.Bone()
+      : new THREE.Object3D();
+    object.name = node.name ?? "";
+    object.matrix.copy(localMatrix(node));
+    object.matrix.decompose(
+      object.position,
+      object.quaternion,
+      object.scale,
+    );
+    return object;
+  });
+  const childIndices = new Set<number>();
+  gltf.nodes.forEach((node, index) => {
+    node.children?.forEach((childIndex) => {
+      objects[index].add(objects[childIndex]);
+      childIndices.add(childIndex);
+    });
+  });
+  const root = new THREE.Group();
+  objects.forEach((object, index) => {
+    if (!childIndices.has(index)) root.add(object);
+  });
+  return buildRetargetRig(root);
 }
 
 describe("selected production GLB", () => {
@@ -165,33 +202,7 @@ describe("selected production GLB", () => {
   });
 
   it("builds direction contracts from the selected GLB hierarchy", () => {
-    const joints = new Set(gltf.skins?.[0]?.joints ?? []);
-    const objects = gltf.nodes.map((node, index) => {
-      const object = joints.has(index)
-        ? new THREE.Bone()
-        : new THREE.Object3D();
-      object.name = node.name ?? "";
-      object.matrix.copy(localMatrix(node));
-      object.matrix.decompose(
-        object.position,
-        object.quaternion,
-        object.scale,
-      );
-      return object;
-    });
-    const childIndices = new Set<number>();
-    gltf.nodes.forEach((node, index) => {
-      node.children?.forEach((childIndex) => {
-        objects[index].add(objects[childIndex]);
-        childIndices.add(childIndex);
-      });
-    });
-    const root = new THREE.Group();
-    objects.forEach((object, index) => {
-      if (!childIndices.has(index)) root.add(object);
-    });
-
-    const rig = buildRetargetRig(root);
+    const rig = buildSelectedRig(gltf);
     for (const config of BODY_BONE_CONFIG) {
       if (config.mode !== "swing") continue;
       expect(
@@ -205,6 +216,91 @@ describe("selected production GLB", () => {
     );
     expect(rig.bindPalmWorldRotations.left.length()).toBeCloseTo(1, 10);
     expect(rig.bindPalmWorldRotations.right.length()).toBeCloseTo(1, 10);
+  });
+
+  it("keeps each selected-asset hand and finger chain in one live palm frame", () => {
+    const rig = buildSelectedRig(gltf);
+
+    for (const side of ["left", "right"] as const) {
+      const handBone = `${side}Hand` as "leftHand" | "rightHand";
+      const chains =
+        side === "left" ? LEFT_FINGER_CHAINS : RIGHT_FINGER_CHAINS;
+      const sourceReference = new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(0.2, -0.35, 0.1),
+      );
+      const liveSource = new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(-0.45, 0.25, 0.55),
+      );
+      const reference = createHandReference(
+        rig,
+        side,
+        sourceReference,
+        0,
+      );
+      const targetReference = reference.targetPalmFrameWorld;
+      const liveTarget = mapSourceFrameToTargetFrame(
+        liveSource,
+        sourceReference,
+        targetReference,
+      );
+      const directions: Partial<
+        Record<
+          RetargetBoneId,
+          { valid: true; direction: THREE.Vector3; confidence: number }
+        >
+      > = {};
+      for (const boneId of chains.flatMap((chain) => chain.bones)) {
+        const palmLocal = rig.worldBindDirections[boneId]!
+          .clone()
+          .applyQuaternion(
+            rig.bindPalmWorldRotations[side].clone().invert(),
+          );
+        directions[boneId] = {
+          valid: true,
+          direction: palmLocal.applyQuaternion(liveSource),
+          confidence: 1,
+        };
+      }
+
+      const targets = solveHandWorldTargets(
+        rig,
+        {
+          frames: {
+            [handBone]: {
+              valid: true,
+              rotation: liveSource,
+              confidence: 1,
+            },
+          },
+          directions,
+        },
+        reference,
+      );
+      const byBone = new Map(
+        targets.map((target) => [target.boneId, target.rotation]),
+      );
+      const actualPalmToHand = liveTarget
+        .clone()
+        .invert()
+        .multiply(byBone.get(handBone)!);
+      expect(
+        actualPalmToHand.angleTo(reference.palmToHandBone),
+        side,
+      ).toBeLessThan(1e-7);
+
+      for (const boneId of chains.flatMap((chain) => chain.bones)) {
+        const expected = rig.worldBindDirections[boneId]!
+          .clone()
+          .applyQuaternion(
+            rig.bindPalmWorldRotations[side].clone().invert(),
+          )
+          .applyQuaternion(liveTarget);
+        const actual = rig.localBindDirections[boneId]!
+          .clone()
+          .applyQuaternion(byBone.get(boneId)!);
+        expect(actual.angleTo(expected), boneId).toBeLessThan(1e-6);
+      }
+    }
   });
 
   it("has positive, uniform world scale throughout the required skeleton", () => {
