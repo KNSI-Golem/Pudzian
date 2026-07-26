@@ -83,30 +83,3 @@ export const MEDIAPIPE_JOINTS_MAPPING: Readonly<Record<string, number>> = {
   shoulderLeft: POSE_LANDMARK.leftShoulder,
   shoulderRight: POSE_LANDMARK.rightShoulder,
 } as const;
-
-/**
- * Compatibility triplets used only by the original upper-limb path. Dedicated
- * anatomical frame builders replace these in later milestones.
- */
-export const JOINT_POINTS_CONFIG: Readonly<Record<string, readonly number[]>> = {
-  forearm_left: [
-    POSE_LANDMARK.leftIndex,
-    POSE_LANDMARK.leftWrist,
-    POSE_LANDMARK.leftElbow,
-  ],
-  forearm_right: [
-    POSE_LANDMARK.rightIndex,
-    POSE_LANDMARK.rightWrist,
-    POSE_LANDMARK.rightElbow,
-  ],
-  arm_left: [
-    POSE_LANDMARK.leftWrist,
-    POSE_LANDMARK.leftElbow,
-    POSE_LANDMARK.leftShoulder,
-  ],
-  arm_right: [
-    POSE_LANDMARK.rightWrist,
-    POSE_LANDMARK.rightElbow,
-    POSE_LANDMARK.rightShoulder,
-  ],
-};

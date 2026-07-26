@@ -1,15 +1,7 @@
 import * as THREE from 'three';
+import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { PoseDetectionResult } from './mediapipe';
 import type { CalibrationStatus } from './calibrate';
-
-export type ModelAnimConfig = {
-  handLeft: string;
-  handRight: string;
-  foreArmLeft: string;
-  foreArmRight: string;
-  armLeft: string;
-  armRight: string;
-}
 
 export type ModelViewerProps = {
   modelPath: string;
@@ -19,6 +11,7 @@ export type ModelViewerProps = {
   onLoad?: () => void;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
   calibrateStatus?: CalibrationStatus;
+  onCalibrationFailure?: () => void;
 }
 
 export type ModelViewerRef = {
@@ -29,5 +22,5 @@ export type ModelViewerRef = {
 }
 
 export type ModelLoadResult = {
-  gltf: any;
+  gltf: GLTF;
 }

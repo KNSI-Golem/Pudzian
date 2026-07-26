@@ -11,12 +11,14 @@ export function ModelViewer({
   onError,
   onLoad,
   poseRef,
-  calibrateStatus 
+  calibrateStatus,
+  onCalibrationFailure,
 }: ModelViewerProps) {
   const { mountRef, isLoading, error, model } = useThreeScene({
     modelPath: isActive ? modelPath : undefined,
     poseRef,
-    calibrateStatus
+    calibrateStatus,
+    onCalibrationFailure,
   });
 
   const lastErrorRef = useRef<string | null>(null);
@@ -62,7 +64,7 @@ export function ModelViewer({
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-red-900 bg-opacity-75 z-10">
           <div className="text-center p-4">
-            <p className="text-white text-sm mb-2">Error loading model:</p>
+            <p className="text-white text-sm mb-2">3D viewer error:</p>
             <p className="text-red-200 text-xs">{error}</p>
           </div>
         </div>
@@ -71,7 +73,7 @@ export function ModelViewer({
       <div 
         ref={mountRef} 
         className="w-full h-full"
-        style={{ minHeight: '400px' }}
+        style={{ minHeight: '400px', transform: 'scaleX(-1)' }}
       />
     </div>
   );
