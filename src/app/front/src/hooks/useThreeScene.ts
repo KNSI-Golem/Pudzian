@@ -14,6 +14,7 @@ import {
   buildRetargetRig,
   BodyCalibrationReference,
   BODY_BONE_ORDER,
+  fitPerspectiveCameraToBounds,
   LEFT_HAND_BONE_ORDER,
   RIGHT_HAND_BONE_ORDER,
   RotationStabilizer,
@@ -78,6 +79,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const stabilizerRef = useRef(new RotationStabilizer());
   const lastAnimationTimeRef = useRef<number | undefined>(undefined);
   const loadedGltfRef = useRef<GLTF | null>(null);
+  const modelBoundsRef = useRef<THREE.Box3 | null>(null);
   const loadGenerationRef = useRef(0);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -153,6 +155,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       currentScene.scene.remove(loadedGltfRef.current.scene);
       disposeObject(loadedGltfRef.current.scene);
       loadedGltfRef.current = null;
+      modelBoundsRef.current = null;
     }
     currentScene.renderer.domElement.remove();
     currentScene.renderer.dispose();
@@ -181,6 +184,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         targetScene.scene.remove(previous.scene);
         disposeObject(previous.scene);
         loadedGltfRef.current = null;
+        modelBoundsRef.current = null;
       }
       rigRef.current = null;
       handReferencesRef.current = {};
@@ -206,6 +210,12 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       lastAnimationTimeRef.current = undefined;
       targetScene.scene.add(pendingGltf.scene);
       loadedGltfRef.current = pendingGltf;
+      const modelBounds = new THREE.Box3().setFromObject(
+        pendingGltf.scene,
+        true,
+      );
+      fitPerspectiveCameraToBounds(targetScene.camera, modelBounds);
+      modelBoundsRef.current = modelBounds;
 
       setModel({ gltf: pendingGltf });
       pendingGltf = null;
@@ -359,7 +369,14 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     const height = Math.max(rect.height, 1);
 
     sceneRef.current.camera.aspect = width / height;
-    sceneRef.current.camera.updateProjectionMatrix();
+    if (modelBoundsRef.current) {
+      fitPerspectiveCameraToBounds(
+        sceneRef.current.camera,
+        modelBoundsRef.current,
+      );
+    } else {
+      sceneRef.current.camera.updateProjectionMatrix();
+    }
     sceneRef.current.renderer.setSize(width, height);
   }, []);
 
@@ -395,6 +412,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         sceneRef.current.scene.remove(loaded.scene);
         disposeObject(loaded.scene);
         loadedGltfRef.current = null;
+        modelBoundsRef.current = null;
         rigRef.current = null;
         handReferencesRef.current = {};
         stabilizerRef.current.reset();
