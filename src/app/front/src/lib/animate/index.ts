@@ -1,6 +1,7 @@
 export * from './boneConfig';
 export * from './bodyFrames';
 export * from './bodyRetarget';
+export * from "./calibrationLifecycle";
 export * from "./cameraFit";
 export * from './coordinateSpace';
 export * from './referencePose';

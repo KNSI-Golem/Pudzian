@@ -15,16 +15,17 @@ import {
   BodyCalibrationReference,
   BODY_BONE_ORDER,
   fitPerspectiveCameraToBounds,
+  HandCalibrationTracker,
   LEFT_HAND_BONE_ORDER,
   RIGHT_HAND_BONE_ORDER,
   RotationStabilizer,
+  resetOnCalibrationRestart,
   solveHandObservation,
   solveHandWorldTargets,
   solveBodyObservation,
   solveBodyWorldTargets,
-  updateHandReference,
   type BoneWorldTarget,
-  type HandReferencePose,
+  type HandCalibrationStatus,
   worldToParentLocalRotation,
   type RetargetReferencePose,
   type RetargetRig,
@@ -72,10 +73,13 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const referencePoseRef = useRef<RetargetReferencePose | null>(null);
   const bodyCalibrationRef = useRef(new BodyCalibrationReference());
   const lastCalibrationPoseRef = useRef<PoseDetectionResult | null>(null);
-  const handReferencesRef = useRef<{
-    left?: HandReferencePose;
-    right?: HandReferencePose;
-  }>({});
+  const previousCalibrationStatusRef = useRef<CalibrationStatus | undefined>(
+    undefined,
+  );
+  const handCalibrationsRef = useRef({
+    left: new HandCalibrationTracker("left"),
+    right: new HandCalibrationTracker("right"),
+  });
   const stabilizerRef = useRef(new RotationStabilizer());
   const lastAnimationTimeRef = useRef<number | undefined>(undefined);
   const loadedGltfRef = useRef<GLTF | null>(null);
@@ -85,6 +89,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [model, setModel] = useState<ModelLoadResult | null>(null);
+  const [handCalibrationStatus, setHandCalibrationStatus] = useState<
+    Record<"left" | "right", HandCalibrationStatus>
+  >({ left: "waiting", right: "waiting" });
 
   const initScene = useCallback(() => {
     if (sceneDisposalTimerRef.current !== undefined) {
@@ -164,7 +171,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     referencePoseRef.current = null;
     bodyCalibrationRef.current.reset();
     lastCalibrationPoseRef.current = null;
-    handReferencesRef.current = {};
+    previousCalibrationStatusRef.current = undefined;
+    handCalibrationsRef.current.left.reset();
+    handCalibrationsRef.current.right.reset();
     stabilizerRef.current.reset();
     lastAnimationTimeRef.current = undefined;
   }, []);
@@ -187,7 +196,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         modelBoundsRef.current = null;
       }
       rigRef.current = null;
-      handReferencesRef.current = {};
+      handCalibrationsRef.current.left.reset();
+      handCalibrationsRef.current.right.reset();
+      setHandCalibrationStatus({ left: "waiting", right: "waiting" });
       stabilizerRef.current.reset();
       setModel(null);
 
@@ -205,7 +216,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
       pendingGltf.scene.updateWorldMatrix(true, true);
       rigRef.current = buildRetargetRig(pendingGltf.scene);
-      handReferencesRef.current = {};
+      handCalibrationsRef.current.left.reset();
+      handCalibrationsRef.current.right.reset();
+      setHandCalibrationStatus({ left: "waiting", right: "waiting" });
       stabilizerRef.current.reset();
       lastAnimationTimeRef.current = undefined;
       targetScene.scene.add(pendingGltf.scene);
@@ -247,6 +260,17 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     lastAnimationTimeRef.current = timestampMs;
     const pose = poseRef?.current;
     const rig = rigRef.current;
+    resetOnCalibrationRestart(
+      previousCalibrationStatusRef.current,
+      calibrateStatus,
+      () => {
+        handCalibrationsRef.current.left.reset();
+        handCalibrationsRef.current.right.reset();
+        setHandCalibrationStatus({ left: "waiting", right: "waiting" });
+        stabilizerRef.current.reset();
+      },
+    );
+    previousCalibrationStatusRef.current = calibrateStatus;
     const newCalibrationPose =
       calibrateStatus === "STARTED" &&
       pose &&
@@ -324,32 +348,36 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
             side === "left"
               ? LEFT_HAND_BONE_ORDER
               : RIGHT_HAND_BONE_ORDER;
-          if (trackingFrame) {
-            const hand =
-              side === "left"
-                ? trackingFrame.leftHand
-                : trackingFrame.rightHand;
-            if (hand) {
-              const handObservation = solveHandObservation(hand);
-              const handReference = updateHandReference(
+          const hand = trackingFrame
+            ? side === "left"
+              ? trackingFrame.leftHand
+              : trackingFrame.rightHand
+            : undefined;
+          const handObservation = hand
+            ? solveHandObservation(hand)
+            : undefined;
+          const handCalibration =
+            handCalibrationsRef.current[side].update(
+              rig,
+              hand,
+              handObservation,
+              trackingFrame?.timestampMs ?? timestampMs,
+            );
+          setHandCalibrationStatus((current) =>
+            current[side] === handCalibration.status
+              ? current
+              : { ...current, [side]: handCalibration.status },
+          );
+          if (handObservation && handCalibration.reference) {
+            applyTargets(
+              boneOrder,
+              solveHandWorldTargets(
                 rig,
                 handObservation,
-                handReferencesRef.current[side],
-                trackingFrame.timestampMs,
-              );
-              if (handReference) {
-                handReferencesRef.current[side] = handReference;
-                applyTargets(
-                  boneOrder,
-                  solveHandWorldTargets(
-                    rig,
-                    handObservation,
-                    handReference,
-                  ),
-                );
-                continue;
-              }
-            }
+                handCalibration.reference,
+              ),
+            );
+            continue;
           }
           applyTargets(boneOrder, []);
         }
@@ -414,7 +442,9 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         loadedGltfRef.current = null;
         modelBoundsRef.current = null;
         rigRef.current = null;
-        handReferencesRef.current = {};
+        handCalibrationsRef.current.left.reset();
+        handCalibrationsRef.current.right.reset();
+        setHandCalibrationStatus({ left: "waiting", right: "waiting" });
         stabilizerRef.current.reset();
         setModel(null);
       }
@@ -438,6 +468,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     isLoading,
     error,
     model,
+    handCalibrationStatus,
     sceneRef: sceneRef.current,
   };
 }

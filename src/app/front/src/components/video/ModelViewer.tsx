@@ -14,7 +14,13 @@ export function ModelViewer({
   calibrateStatus,
   onCalibrationFailure,
 }: ModelViewerProps) {
-  const { mountRef, isLoading, error, model } = useThreeScene({
+  const {
+    mountRef,
+    isLoading,
+    error,
+    model,
+    handCalibrationStatus,
+  } = useThreeScene({
     modelPath: isActive ? modelPath : undefined,
     poseRef,
     calibrateStatus,
@@ -67,6 +73,25 @@ export function ModelViewer({
             <p className="text-white text-sm mb-2">3D viewer error:</p>
             <p className="text-red-200 text-xs">{error}</p>
           </div>
+        </div>
+      )}
+
+      {calibrateStatus === "YES" && !error && (
+        <div className="absolute left-3 bottom-3 z-10 rounded bg-black/60 px-3 py-2 text-xs text-white">
+          {(["left", "right"] as const).map((side) => {
+            const status = handCalibrationStatus[side];
+            const instruction =
+              status === "waiting"
+                ? "show open palm"
+                : status === "sampling"
+                  ? "hold steady"
+                  : "calibrated";
+            return (
+              <div key={side}>
+                {side === "left" ? "Left" : "Right"} hand: {instruction}
+              </div>
+            );
+          })}
         </div>
       )}
       

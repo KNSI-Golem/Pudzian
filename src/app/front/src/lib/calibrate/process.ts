@@ -1,46 +1,45 @@
-import {PoseDetectionResult} from "@/types";
-import {MEDIAPIPE_JOINTS_MAPPING } from "@/lib/mediapipe/mapping";
-import { CalibrateJointConfig } from "@/types";
+import type { PoseDetectionResult } from "@/types";
+import { MEDIAPIPE_JOINTS_MAPPING } from "@/lib/mediapipe/mapping";
+import type { CalibrateJointConfig } from "@/types";
 
 const CALIBRATE_JOINTS_CONFIG: CalibrateJointConfig = {
-    joint_list: [
-        "shoulderLeft",    
-        "shoulderRight",
-        "nose"
-    ],
-    visibility_threshold: 0.8,
-    center_margin: 0.2
+  joint_list: ["shoulderLeft", "shoulderRight", "nose"],
+  visibility_threshold: 0.8,
+  center_margin: 0.2,
+};
+
+export function isCalibrated(poseDetection: PoseDetectionResult): boolean {
+  return isPoseVisible(poseDetection) && isPoseCentered(poseDetection);
 }
 
-export function isCalibrated(poseDetection: PoseDetectionResult) { 
-    return isPoseVisible(poseDetection) && isPoseCentered(poseDetection)
-}
+export function isPoseVisible(poseDetection: PoseDetectionResult): boolean {
+  const landmarks = poseDetection.landmarks[0];
+  if (!landmarks) return false;
 
-export function isPoseVisible(poseDetection: PoseDetectionResult) {
-    for (const joint of CALIBRATE_JOINTS_CONFIG.joint_list) {
-        const joint_index = MEDIAPIPE_JOINTS_MAPPING[joint];
-        const joint_visibility = poseDetection.landmarks[0][joint_index].visibility;
-
-        if (!isJointVisible(joint_visibility)) {
-            return false
-        }
+  for (const joint of CALIBRATE_JOINTS_CONFIG.joint_list) {
+    const jointIndex = MEDIAPIPE_JOINTS_MAPPING[joint];
+    const visibility = landmarks[jointIndex]?.visibility;
+    if (!isJointVisible(visibility)) {
+      return false;
     }
-    return true
+  }
+  return true;
 }
 
-function isJointVisible(joint_visibility: number) {
-    return joint_visibility >= CALIBRATE_JOINTS_CONFIG.visibility_threshold;
+function isJointVisible(visibility: number | undefined): boolean {
+  return (
+    visibility !== undefined &&
+    visibility >= CALIBRATE_JOINTS_CONFIG.visibility_threshold
+  );
 }
 
-function isPoseCentered(poseDetection: PoseDetectionResult) {
-    const nose_index = MEDIAPIPE_JOINTS_MAPPING["nose"];
-    const nose_x = poseDetection.landmarks[0][nose_index].x;
+function isPoseCentered(poseDetection: PoseDetectionResult): boolean {
+  const noseIndex = MEDIAPIPE_JOINTS_MAPPING.nose;
+  const noseX = poseDetection.landmarks[0]?.[noseIndex]?.x;
+  if (noseX === undefined || !Number.isFinite(noseX)) return false;
 
-    console.log(nose_x)
-
-    const CENTER = 0.5;
-    const leftMargin = CENTER - CALIBRATE_JOINTS_CONFIG.center_margin;
-    const rightMargin = CENTER + CALIBRATE_JOINTS_CONFIG.center_margin;
-
-    return nose_x >= leftMargin && nose_x <= rightMargin;
+  const center = 0.5;
+  const leftMargin = center - CALIBRATE_JOINTS_CONFIG.center_margin;
+  const rightMargin = center + CALIBRATE_JOINTS_CONFIG.center_margin;
+  return noseX >= leftMargin && noseX <= rightMargin;
 }

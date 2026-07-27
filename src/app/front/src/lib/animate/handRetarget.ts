@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import type { FrameResult } from "@/types";
 import type { BoneWorldTarget } from "./bodyRetarget";
 import type { HandObservation } from "./handFrames";
 import { frameFromUpAndForward } from "./sourceFrames";
@@ -58,57 +57,6 @@ export function createHandReference(
       .clone()
       .invert()
       .multiply(rig.worldBindRotations[handBone])
-      .normalize(),
-  });
-}
-
-function validFrame(
-  frame: FrameResult | undefined,
-): Extract<FrameResult, { valid: true }> | undefined {
-  return frame?.valid ? frame : undefined;
-}
-
-/**
- * Compatibility for the viewer commits that precede explicit hand
- * calibration in the rewritten history.
- */
-export function updateHandReference(
-  rig: RetargetRig,
-  observation: HandObservation,
-  current: HandReferencePose | undefined,
-  capturedAtMs: number,
-): HandReferencePose | undefined {
-  if (current) return current;
-  const handBone = observation.frames.leftHand
-    ? "leftHand"
-    : observation.frames.rightHand
-      ? "rightHand"
-      : undefined;
-  if (!handBone) return undefined;
-  const palm = validFrame(observation.frames[handBone]);
-  if (!palm) return undefined;
-
-  rig.bones[handBone].updateWorldMatrix(true, false);
-  const targetHandWorld = rig.bones[handBone]
-    .getWorldQuaternion(new THREE.Quaternion())
-    .normalize();
-  const side = handBone === "leftHand" ? "left" : "right";
-  const handFromBind = targetHandWorld
-    .clone()
-    .multiply(rig.worldBindRotations[handBone].clone().invert());
-  const targetPalmFrameWorld = handFromBind
-    .multiply(rig.bindPalmWorldRotations[side])
-    .normalize();
-
-  return Object.freeze({
-    capturedAtMs,
-    handBone,
-    sourcePalmWorld: palm.rotation.clone().normalize(),
-    targetPalmFrameWorld,
-    palmToHandBone: targetPalmFrameWorld
-      .clone()
-      .invert()
-      .multiply(targetHandWorld)
       .normalize(),
   });
 }
