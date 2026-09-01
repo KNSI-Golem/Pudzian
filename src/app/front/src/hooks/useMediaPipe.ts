@@ -1,57 +1,92 @@
-import { useState, useEffect } from "react";
-import { PoseLandmarker } from "@mediapipe/tasks-vision";
-import { createPoseLandmarker, handleMediaPipeError } from "@/lib/mediapipe";
-import type { MediaPipeHookReturn, MediaPipeConfig } from "@/types";
+import { useEffect, useState } from "react";
+import type {
+  HandLandmarker,
+  PoseLandmarker,
+} from "@mediapipe/tasks-vision";
+import {
+  createHandLandmarker,
+  createPoseLandmarker,
+  handleMediaPipeError,
+  runMediaPipeOperation,
+} from "@/lib/mediapipe";
+import type {
+  HandMediaPipeConfig,
+  MediaPipeConfig,
+  MediaPipeHookReturn,
+} from "@/types";
 
+type UseMediaPipeConfig = {
+  pose?: Partial<MediaPipeConfig>;
+  hand?: Partial<HandMediaPipeConfig>;
+};
 
-export function useMediaPipe(config?: Partial<MediaPipeConfig>): MediaPipeHookReturn {
-  const [poseLandmarker, setPoseLandmarker] = useState<PoseLandmarker | null>(null);
+export function useMediaPipe(
+  config: UseMediaPipeConfig = {},
+): MediaPipeHookReturn {
+  const [poseLandmarker, setPoseLandmarker] =
+    useState<PoseLandmarker | null>(null);
+  const [handLandmarker, setHandLandmarker] =
+    useState<HandLandmarker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [handError, setHandError] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
+    let active = true;
+    let poseInstance: PoseLandmarker | null = null;
+    let handInstance: HandLandmarker | null = null;
 
-    const initializeMediaPipe = async () => {
+    const initialize = async () => {
+      setIsLoading(true);
+      setError(null);
+      setHandError(null);
+
       try {
-        setIsLoading(true);
-        setError(null);
-        
-        const landmarker = await createPoseLandmarker(config);
-        
-        if (mounted) {
-          setPoseLandmarker(landmarker);
+        poseInstance = await createPoseLandmarker(config.pose);
+        if (!active) {
+          runMediaPipeOperation(() => poseInstance?.close());
+          return;
         }
-      } catch (err) {
-        if (mounted) {
-          const errorMessage = handleMediaPipeError(err);
-          setError(errorMessage);
-          console.error("Failed to initialize MediaPipe:", errorMessage);
+        setPoseLandmarker(poseInstance);
+      } catch (initializationError) {
+        if (active) {
+          setError(handleMediaPipeError(initializationError));
         }
+        return;
       } finally {
-        if (mounted) {
+        if (active) {
           setIsLoading(false);
         }
       }
-    };
 
-    initializeMediaPipe();
-
-    return () => {
-      mounted = false;
-      if (poseLandmarker) {
-        try {
-          poseLandmarker.close();
-        } catch (err) {
-          console.warn("Error closing MediaPipe resources:", err);
+      try {
+        handInstance = await createHandLandmarker(config.hand);
+        if (!active) {
+          runMediaPipeOperation(() => handInstance?.close());
+          return;
+        }
+        setHandLandmarker(handInstance);
+      } catch (initializationError) {
+        if (active) {
+          setHandError(handleMediaPipeError(initializationError));
         }
       }
     };
-  }, [config]);
+
+    void initialize();
+
+    return () => {
+      active = false;
+      runMediaPipeOperation(() => poseInstance?.close());
+      runMediaPipeOperation(() => handInstance?.close());
+    };
+  }, [config.hand, config.pose]);
 
   return {
     poseLandmarker,
+    handLandmarker,
     isLoading,
     error,
+    handError,
   };
 }

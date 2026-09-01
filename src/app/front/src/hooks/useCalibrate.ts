@@ -22,6 +22,8 @@ export function useCalibrate(options: UseCalibrateOptions): UseCalibrateReturn {
     if (poseDetection) {
       const calibrated = isCalibrated(poseDetection);
       setSuccess(calibrated);
+    } else {
+      setSuccess(false);
     }
   }, [poseRef]);
 

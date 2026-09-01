@@ -10,6 +10,7 @@ import { CalibrationStatus } from '@/types/calibrate';
 export default function Home() {
   const poseRef = useRef<PoseDetectionResult | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const calibrationAcceptedRef = useRef(false);
 
   const [uiState, setUIState] = useState<GolemUIState>({
     isStreaming: false,
@@ -19,6 +20,7 @@ export default function Home() {
   });
 
   const [calibrateStatus, setCalibrateStatus] = useState<CalibrationStatus>('NO');
+  const [calibrationAttempt, setCalibrationAttempt] = useState(0);
 
   const { success: isCalibrated } = useCalibrate({ poseRef });
 
@@ -43,20 +45,28 @@ export default function Home() {
     });
   }, []);
 
+  const handleCalibrationFailure = useCallback(() => {
+    calibrationAcceptedRef.current = false;
+    setCalibrateStatus("NO");
+    setCalibrationAttempt((attempt) => attempt + 1);
+  }, []);
+
   useEffect(() => {
-  
+    if (calibrationAcceptedRef.current) return;
+
     if (isCalibrated) {
       setCalibrateStatus('STARTED');
-  
+
       const timer = setTimeout(() => {
+        calibrationAcceptedRef.current = true;
         setCalibrateStatus('YES');
       }, 2000);
-  
+
       return () => clearTimeout(timer);
-      } else {
-        setCalibrateStatus('NO');
-      }
-  }, [isCalibrated]);
+    }
+
+    setCalibrateStatus('NO');
+  }, [calibrationAttempt, isCalibrated]);
 
   return (
     <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
@@ -97,11 +107,12 @@ export default function Home() {
             </div>
           ) : (
             <ModelViewer 
-              modelPath="/models/result.gltf"
+              modelPath="/models/mixamo_blue_person.glb"
               isActive={uiState.isStreaming}
               onError={handleError}
               poseRef={poseRef}
               calibrateStatus={calibrateStatus}
+              onCalibrationFailure={handleCalibrationFailure}
             />
           )}
         </ViewPanel>
