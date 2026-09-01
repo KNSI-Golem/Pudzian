@@ -8,7 +8,7 @@ import { VideoCanvas } from '@/components';
 import { CameraPlaceholder } from '@/components';
 import { usePoseDetection } from '@/hooks';
 import { PoseDetectionResult } from '@/types';
-import { CalibrateOutline } from './CalibrateOutline';
+import { CalibrateOutline } from '@/components';
 import { CalibrationStatus } from '@/types/calibrate';
 
 interface VideoStreamProps {
