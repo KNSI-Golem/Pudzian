@@ -6,7 +6,7 @@ import { VIDEO_CONSTRAINTS } from '@/lib/constants';
 import { formatErrorMessage } from '@/lib/utils';
 import { VideoCanvas } from '@/components';
 import { CameraPlaceholder } from '@/components';
-import { usePoseDetection } from '@/components';
+import { usePoseDetection } from '@/hooks';
 import { PoseDetectionResult } from '@/types';
 import { CalibrateOutline } from './CalibrateOutline';
 import { CalibrationStatus } from '@/types/calibrate';
