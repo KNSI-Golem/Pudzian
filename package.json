@@ -12,6 +12,7 @@
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.0",
     "@types/three": "^0.180.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "next": "^16.3.4",
     "react": "19.1.0",

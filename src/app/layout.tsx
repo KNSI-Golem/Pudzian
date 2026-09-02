@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@/styles/components.css";
 import { Header, Footer } from "@/components/layout";
 import { APP_CONFIG } from "@/lib/constants";
 
