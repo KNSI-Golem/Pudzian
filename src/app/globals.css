@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
-:root {
-  --main-bg: #3a3a46;
-  --secondary-bg: #2d2d37;
-  --accent-1: #797992;
-  --accent-2: #97afb3;
-  --text-color: #f0f0f0;
+@theme { 
+  --background: #393947;
+  --foreground: #000;
+  --accent: #00e5c5;
+  --accent-foreground: #fff;
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-weight-bold: 700;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --border: oklch(100% 0 0/.1);
+  --radius: .625rem;
 }
 
-:root {
-  --color-background: var(--main-bg);
-  --color-foreground: var(--text-color);
-  --font-sans: var(--font-jura);
-  --font-mono: var(--font-jura);
-}
+@layer base {
+  body {
+    background-color: var(--background);
+    background-image: linear-gradient(225deg,var(--foreground) 0%,var(--background) 100%);
+    color: var(--accent-foreground);
+    font-family: var(--font-mono);
+  }
 
-body {
-  font-family: var(--font-sans), sans-serif;
-  background-color: var(--main-bg);
-  color: var(--text-color);
-  background-size: 15px 15px;
-  overflow-x: hidden;
-}
+  h2 {
+    color: var(--accent-foreground);
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-bold);
+  }
 
-.font-golem {
-  font-family: var(--font-sans), sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
-

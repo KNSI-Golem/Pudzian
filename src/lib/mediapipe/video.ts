@@ -1,8 +1,8 @@
 import type { VideoStreamConfig } from "@/types";
 
 export const DEFAULT_VIDEO_CONFIG: VideoStreamConfig = {
-  width: 640,
-  height: 480,
+  width: 480,
+  height: 640,
   facingMode: "user",
 };
 

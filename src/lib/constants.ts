@@ -5,7 +5,7 @@ export const APP_CONFIG = {
 } as const;
 
 export const VIDEO_CONSTRAINTS = {
-  width: 640,
-  height: 480,
+  width: 480,
+  height: 640,
   facingMode: "user",
 } as const;

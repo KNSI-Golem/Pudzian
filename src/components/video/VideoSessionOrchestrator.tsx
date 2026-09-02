@@ -67,13 +67,13 @@ export function VideoSessionOrchestrator() {
   }, [calibrationAttempt, isCalibrated]);
 
   return (
-      <div className="w-50% grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch w-3/4">
         
         <ViewPanel className="aspect-3/4">
           {uiState.showInitialView ? (
-            <div className="bg-zinc-900/70 flex flex-col rounded-2xl items-center justify-center text-center p-8 h-full border border-zinc-600">
-              <h2 className="text-2xl mb-4 text-accent">Your perspective</h2>
-              <p className="text-white mb-8 max-w-sm">
+            <div className="flex flex-col rounded-2xl items-center justify-center text-center p-8 h-full">
+              <h2 className="text-2xl mb-4">Your perspective</h2>
+              <p className="mb-8 max-w-sm">
                 To get started, grant access to your camera. Our AI model will process the image in real time and create your digital version of the Golem.
               </p>
               <Button onClick={handleActivate}>
@@ -98,8 +98,7 @@ export function VideoSessionOrchestrator() {
 
         <ViewPanel className="aspect-3/4">
           {uiState.showInitialView ? (
-            <div className="bg-zinc-900/70 flex flex-col rounded-2xl items-center justify-center text-center p-8 h-full border border-zinc-600">
-              <h2 className="text-2xl mb-4 text-white">The Golem is waiting</h2>
+            <div className="flex flex-col rounded-2xl p-8 h-full">
             </div>
           ) : (
             <ModelViewer 
