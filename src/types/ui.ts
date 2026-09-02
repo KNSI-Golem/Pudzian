@@ -12,9 +12,3 @@ export type ViewPanelProps = {
   title?: string;
   className?: string;
 }
-
-export type AwakeningGridProps = {
-  cellCount?: number;
-  animationDelay?: number;
-  className?: string;
-}

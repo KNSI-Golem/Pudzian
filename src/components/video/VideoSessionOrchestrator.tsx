@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { VideoStream, ModelViewer } from '@/components/video';
-import { Button, ViewPanel, AwakeningGrid } from '@/components/ui';
+import { Button, ViewPanel } from '@/components/ui';
 import type { GolemUIState, PoseDetectionResult } from '@/types';
 import { useCalibrate } from '@/hooks';
 import { CalibrationStatus } from '@/types/calibrate';
@@ -67,13 +67,13 @@ export function VideoSessionOrchestrator() {
   }, [calibrationAttempt, isCalibrated]);
 
   return (
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+      <div className="w-50% grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
         
-        <ViewPanel className="aspect-[4/3]">
+        <ViewPanel className="aspect-3/4">
           {uiState.showInitialView ? (
-            <div className="flex flex-col items-center justify-center text-center p-8 h-full">
-              <h2 className="font-golem text-2xl mb-4 text-white">Your perspective</h2>
-              <p className="text-gray-300 mb-8 max-w-sm">
+            <div className="bg-zinc-900/70 flex flex-col rounded-2xl items-center justify-center text-center p-8 h-full border border-zinc-600">
+              <h2 className="text-2xl mb-4 text-accent">Your perspective</h2>
+              <p className="text-white mb-8 max-w-sm">
                 To get started, grant access to your camera. Our AI model will process the image in real time and create your digital version of the Golem.
               </p>
               <Button onClick={handleActivate}>
@@ -96,11 +96,10 @@ export function VideoSessionOrchestrator() {
           )}
         </ViewPanel>
 
-        <ViewPanel className="aspect-[4/3]">
+        <ViewPanel className="aspect-3/4">
           {uiState.showInitialView ? (
-            <div className="flex flex-col items-center justify-center h-full p-8">
-              <h2 className="font-golem text-2xl mb-4 text-white">The Golem is waiting</h2>
-                <AwakeningGrid />
+            <div className="bg-zinc-900/70 flex flex-col rounded-2xl items-center justify-center text-center p-8 h-full border border-zinc-600">
+              <h2 className="text-2xl mb-4 text-white">The Golem is waiting</h2>
             </div>
           ) : (
             <ModelViewer 
