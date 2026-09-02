@@ -14,10 +14,10 @@ export function Header() {
           height={50}
         />
         <div className="flex flex-col items-start">
-          <h1 className="font-golem text-3xl font-bold tracking-widest text-white">
+          <h1 className="text-3xl font-bold tracking-widest text-white">
             Golem VR
           </h1>
-          <p className="font-golem text-xs text-gray-300 -mt-1">
+          <p className="text-xs text-gray-300 -mt-1">
             {APP_CONFIG.fullName}
           </p>
         </div>
