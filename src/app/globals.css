@@ -4,6 +4,8 @@
   --background: #393947;
   --foreground: #000;
   --accent: #00e5c5;
+  --secondary: var(--color-zinc-900);
+  --secondary-foreground: var(--color-zinc-600);
   --accent-foreground: #fff;
   --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -12,6 +14,13 @@
   --font-weight-semibold: 600;
   --border: oklch(100% 0 0/.1);
   --radius: .625rem;
+  --ring: oklch(55.6% 0 0);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
 }
 
 @layer base {

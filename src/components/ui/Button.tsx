@@ -4,18 +4,18 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 
 const buttonVariants = cva(
-  'border py-3 px-2 rounded-sm uppercase',
+  'border rounded-xl uppercase cursor-pointer',
   {
     variants: {
       variant: {
-        primary: 'text-accent bg-primary hover:bg-primary/90',
-        secondary: 'text-black bg-secondary hover:bg-secondary/90',
-        outline: 'text-accent bg-background hover:bg-accent hover:text-accent-foregound'
+        primary: 'text-accent bg-secondary hover:bg-accent hover:text-secondary',
+        secondary: 'text-secondary bg-background hover:bg-background/80',
+        outline: 'text-accent-foreground'
       },
       size: {
           sm: "py-2 px-4 text-sm",
-          md: "py-3 px-6",
-          lg: "py-4 px-8 text-lg",
+          md: "py-2 px-4",
+          lg: "py-4 px-6 text-lg",
       }
     },
     defaultVariants: {
