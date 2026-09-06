@@ -1,14 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useReducer } from 'react';
 import { VideoStream, ModelViewer } from '@/components/video';
 import { Button, ViewPanel } from '@/components/ui';
 import type { GolemUIState, PoseDetectionResult } from '@/types';
 import { useCalibrate } from '@/hooks';
-import { CalibrationStatus } from '@/types/calibrate';
+import { calibrationReducer, CALIBRATION_HOLD_MS } from '@/lib/calibrate';
 
 export function VideoSessionOrchestrator() {
   const poseRef = useRef<PoseDetectionResult | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const calibrationAcceptedRef = useRef(false);
 
   const [uiState, setUIState] = useState<GolemUIState>({
     isStreaming: false,
@@ -17,10 +16,8 @@ export function VideoSessionOrchestrator() {
     error: null,
   });
 
-  const [calibrateStatus, setCalibrateStatus] = useState<CalibrationStatus>('NO');
-  const [calibrationAttempt, setCalibrationAttempt] = useState(0);
-
-  const { success: isCalibrated } = useCalibrate({ poseRef });
+  const [calibrateStatus, dispatch] = useReducer(calibrationReducer, 'NO');   // stan kalibracji
+  const { success: isCalibrated } = useCalibrate({ poseRef });               // czy poza jest okej
 
   const handleActivate = useCallback(() => {
     setUIState(prev => ({
@@ -44,31 +41,40 @@ export function VideoSessionOrchestrator() {
   }, []);
 
   const handleCalibrationFailure = useCallback(() => {
-    calibrationAcceptedRef.current = false;
-    setCalibrateStatus("NO");
-    setCalibrationAttempt((attempt) => attempt + 1);
+    dispatch({ type: 'FAILURE' });
   }, []);
 
+
   useEffect(() => {
-    if (calibrationAcceptedRef.current) return;
-
-    if (isCalibrated) {
-      setCalibrateStatus('STARTED');
-
-      const timer = setTimeout(() => {
-        calibrationAcceptedRef.current = true;
-        setCalibrateStatus('YES');
-      }, 2000);
-
-      return () => clearTimeout(timer);
+    // stoisz dobrze i nie zaczal sie countdown utrzymania pozy dobrej
+    if (isCalibrated && calibrateStatus === 'NO') {
+      dispatch({ type: 'POSE_OK' });
     }
+    // nie stoisz dobrze i zaczal sie countdown
+    else if (!isCalibrated && calibrateStatus === 'STARTED') {
+      dispatch({ type: 'POSE_LOST' });
+    }
+  }, [isCalibrated, calibrateStatus]);
 
-    setCalibrateStatus('NO');
-  }, [calibrationAttempt, isCalibrated]);
+  // czekales 2s w poprawnej pozie? -> mozna zaczac mapowac na model 3D
+  useEffect(() => {
+    if (calibrateStatus !== 'STARTED') return;
+
+    const timer = setTimeout(() => dispatch({ type: 'HOLD_ELAPSED' }), CALIBRATION_HOLD_MS);
+    return () => clearTimeout(timer);
+  }, [calibrateStatus]);
+
+  // czekales 2s w niepoprawnej pozie? -> wroc do kalibracji, cos jest nie tak z twoja poza
+  useEffect(() => {
+    if (calibrateStatus !== 'YES' || isCalibrated) return;
+
+    const timer = setTimeout(() => dispatch({ type: 'POSE_LOST' }), CALIBRATION_HOLD_MS);
+    return () => clearTimeout(timer);
+  }, [calibrateStatus, isCalibrated]);
 
   return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch w-3/4">
-        
+
         <ViewPanel className="aspect-3/4">
           {uiState.showInitialView ? (
             <div className="flex flex-col rounded-2xl items-center justify-center text-center p-8 h-full">
@@ -86,8 +92,8 @@ export function VideoSessionOrchestrator() {
               )}
             </div>
           ) : (
-            <VideoStream 
-              isStreaming={uiState.isStreaming} 
+            <VideoStream
+              isStreaming={uiState.isStreaming}
               onError={handleError}
               poseRef={poseRef}
               videoRef={videoRef}
@@ -101,7 +107,7 @@ export function VideoSessionOrchestrator() {
             <div className="flex flex-col rounded-2xl p-8 h-full">
             </div>
           ) : (
-            <ModelViewer 
+            <ModelViewer
               modelPath="/models/mixamo_blue_person.glb"
               isActive={uiState.isStreaming}
               onError={handleError}
