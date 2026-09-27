@@ -7,6 +7,8 @@
   --secondary: var(--color-zinc-900);
   --secondary-foreground: var(--color-zinc-600);
   --accent-foreground: #fff;
+  --error: var(--color-red-400);
+  --warn: var(--color-amber-500);
   --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-weight-bold: 700;
@@ -21,6 +23,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-warn: var(--warn);
+  --color-error: var(--error);
 }
 
 @layer base {
