@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useThreeScene } from '@/hooks/useThreeScene';
-import type { ModelViewerProps } from '@/types';
+import { ModelViewerProps } from '@/types';
 
 export function ModelViewer({ 
+  status,
   modelPath, 
-  isActive, 
   className = "", 
   onError,
   onLoad,
@@ -14,14 +14,8 @@ export function ModelViewer({
   calibrateStatus,
   onCalibrationFailure,
 }: ModelViewerProps) {
-  const {
-    mountRef,
-    isLoading,
-    error,
-    model,
-    handCalibrationStatus,
-  } = useThreeScene({
-    modelPath: isActive ? modelPath : undefined,
+  const { mountRef, isLoading, error, model } = useThreeScene({
+    modelPath,
     poseRef,
     calibrateStatus,
     onCalibrationFailure,
@@ -61,7 +55,7 @@ export function ModelViewer({
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-opacity-75 z-10">
           <div className="text-center">
-            <div className="animate-spin w-8 h-8 rounded-full mx-auto mb-2"></div>
+            <div className="animate-spin w-8 h-8 rounded-full mx-auto mb-2 border-2 border-white border-t-transparent" />
             <p className="text-white text-sm">Loading 3D model...</p>
           </div>
         </div>
@@ -73,25 +67,6 @@ export function ModelViewer({
             <p className="text-white text-sm mb-2">3D viewer error:</p>
             <p className="text-red-200 text-xs">{error}</p>
           </div>
-        </div>
-      )}
-
-      {calibrateStatus === "YES" && !error && (
-        <div className="absolute left-3 bottom-3 z-10 rounded bg-black/60 px-3 py-2 text-xs text-white">
-          {(["left", "right"] as const).map((side) => {
-            const status = handCalibrationStatus[side];
-            const instruction =
-              status === "waiting"
-                ? "show open palm"
-                : status === "sampling"
-                  ? "hold steady"
-                  : "calibrated";
-            return (
-              <div key={side}>
-                {side === "left" ? "Left" : "Right"} hand: {instruction}
-              </div>
-            );
-          })}
         </div>
       )}
       

@@ -14,14 +14,14 @@ import {
   HandAssignmentTracker,
   runMediaPipeOperation,
 } from "@/lib/mediapipe";
-import type { PoseDetectionResult } from "@/types";
+import type { PoseDetectionResult, SessionStatus } from "@/types";
 
 interface PoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   poseLandmarker: PoseLandmarker | null;
   handLandmarker?: HandLandmarker | null;
-  isActive: boolean;
+  status: SessionStatus;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
 }
 
@@ -30,7 +30,7 @@ export function usePoseDetection({
   canvasRef,
   poseLandmarker,
   handLandmarker,
-  isActive,
+  status,
   poseRef,
 }: PoseDetectionProps) {
   const isRunningRef = useRef(false);
@@ -54,7 +54,7 @@ export function usePoseDetection({
     const videoElement = videoRef.current;
     const canvasElement = canvasRef.current;
 
-    if (!videoElement || !canvasElement || !poseLandmarker || !isActive) {
+    if (!videoElement || !canvasElement || !poseLandmarker) {
       return;
     }
 
@@ -163,7 +163,7 @@ export function usePoseDetection({
   }, [
     canvasRef,
     handLandmarker,
-    isActive,
+    status,
     poseLandmarker,
     poseRef,
     videoRef,
@@ -199,15 +199,28 @@ export function usePoseDetection({
     }
   }, [poseRef]);
 
+  const pauseDetection = useCallback(() => {
+    isRunningRef.current = false;
+    runGenerationRef.current += 1;
+    if (animationFrameRef.current !== undefined) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
+    }
+  }, []);
+
   useEffect(() => {
-    if (isActive && poseLandmarker) {
+    if (status === 'active' && poseLandmarker) {
       startDetection();
+    } else if (status === 'paused') {
+      pauseDetection();
     } else {
       stopDetection();
     }
 
-    return stopDetection;
-  }, [isActive, poseLandmarker, startDetection, stopDetection]);
+    return () => {
+      stopDetection();
+    };
+  }, [status, poseLandmarker, startDetection, pauseDetection, stopDetection]);
 
   return {
     startDetection,

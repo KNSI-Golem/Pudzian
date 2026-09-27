@@ -1,23 +1,30 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getUserMediaStream, stopMediaStream, checkMediaSupport } from "@/lib/mediapipe";
-import type { VideoStreamConfig } from "@/types";
+import type { VideoStreamConfig, SessionStatus } from "@/types";
+
+interface UseVideoStreamOptions {
+  status: SessionStatus;
+  config?: Partial<VideoStreamConfig>;
+}
 
 interface UseVideoStreamReturn {
   stream: MediaStream | null;
-  isActive: boolean;
   error: string | null;
-  startStream: () => Promise<void>;
-  stopStream: () => void;
 }
 
-
-export function useVideoStream(config?: Partial<VideoStreamConfig>): UseVideoStreamReturn {
+export function useVideoStream({
+  status,
+  config,
+}: UseVideoStreamOptions): UseVideoStreamReturn {
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const startStream = useCallback(async () => {
+    if (streamRef.current && streamRef.current.active) {
+      return;
+    }
+
     try {
       const supportCheck = checkMediaSupport();
       if (!supportCheck.supported) {
@@ -29,9 +36,9 @@ export function useVideoStream(config?: Partial<VideoStreamConfig>): UseVideoStr
 
       streamRef.current = mediaStream;
       setStream(mediaStream);
-      setIsActive(true);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to start video stream";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to start video stream";
       setError(errorMessage);
       console.error("Error starting video stream:", errorMessage);
     }
@@ -42,24 +49,44 @@ export function useVideoStream(config?: Partial<VideoStreamConfig>): UseVideoStr
       stopMediaStream(streamRef.current);
       streamRef.current = null;
       setStream(null);
-      setIsActive(false);
       setError(null);
     }
   }, []);
 
   useEffect(() => {
+    switch (status) {
+      case "active":
+        if (streamRef.current) {
+          streamRef.current.getVideoTracks().forEach((track) => {
+            track.enabled = true;
+          });
+        }
+        startStream();
+        break;
+
+      case "paused":
+        if (streamRef.current) {
+          streamRef.current.getVideoTracks().forEach((track) => {
+            track.enabled = false;
+          });
+        }
+        break;
+
+      case "idle":
+      case "error":
+        stopStream();
+        break;
+    }
+  }, [status, startStream, stopStream]);
+
+  useEffect(() => {
     return () => {
-      if (streamRef.current) {
-        stopMediaStream(streamRef.current);
-      }
+      stopStream();
     };
-  }, []);
+  }, [stopStream]);
 
   return {
     stream,
-    isActive,
     error,
-    startStream,
-    stopStream,
   };
 }

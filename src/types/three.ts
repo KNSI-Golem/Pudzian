@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import type { PoseDetectionResult } from './mediapipe';
+import type { SessionStatus, PoseDetectionResult } from '@/types';
 import type { CalibrationStatus } from './calibrate';
 
 export type ModelViewerProps = {
   modelPath: string;
-  isActive: boolean;
+  status: SessionStatus;
   className?: string;
   onError?: (error: string) => void;
   onLoad?: () => void;

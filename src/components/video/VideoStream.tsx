@@ -1,18 +1,15 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { useMediaPipe, useVideoStream } from '@/hooks';
+import { useMediaPipe, useVideoStream, usePoseDetection } from '@/hooks';
 import { VIDEO_CONSTRAINTS } from '@/lib/constants';
 import { formatErrorMessage } from '@/lib/utils';
-import { VideoCanvas } from '@/components';
-import { CameraPlaceholder } from '@/components';
-import { usePoseDetection } from '@/hooks';
-import { PoseDetectionResult } from '@/types';
-import { CalibrateOutline } from '@/components';
-import { CalibrationStatus } from '@/types/calibrate';
+import { VideoCanvas, CameraPlaceholder, CalibrateOutline } from '@/components';
+import type { SessionStatus, PoseDetectionResult } from '@/types';
+import type { CalibrationStatus } from '@/types/calibrate';
 
 interface VideoStreamProps {
-  isStreaming: boolean;
+  status: SessionStatus;
   className?: string;
   onError?: (error: string) => void;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
@@ -21,7 +18,7 @@ interface VideoStreamProps {
 }
 
 export function VideoStream({ 
-  isStreaming, 
+  status, 
   className = "",
   onError,
   poseRef,
@@ -35,33 +32,21 @@ export function VideoStream({
     handLandmarker,
     isLoading: isMediaPipeLoading,
     error: mediaPipeError,
-    handError,
   } = useMediaPipe();
 
-  const { 
-    stream, 
-    isActive, 
-    error: streamError, 
-    startStream, 
-    stopStream 
-  } = useVideoStream(VIDEO_CONSTRAINTS);
+  const { stream, error: streamError } = useVideoStream({
+    status,
+    config: VIDEO_CONSTRAINTS,
+  });
 
-  const { startDetection, stopDetection } = usePoseDetection({
+  usePoseDetection({
     videoRef,
     canvasRef,
     poseLandmarker,
     handLandmarker,
-    isActive: isStreaming && isActive,
-    poseRef
+    status,
+    poseRef,
   });
-
-  useEffect(() => {
-    if (isStreaming && poseLandmarker && !isMediaPipeLoading) {
-      startStream();
-    } else if (!isStreaming) {
-      stopStream();
-    }
-  }, [isStreaming, poseLandmarker, isMediaPipeLoading, startStream, stopStream]);
 
   useEffect(() => {
     const error = mediaPipeError || streamError;
@@ -70,13 +55,7 @@ export function VideoStream({
     }
   }, [mediaPipeError, streamError, onError]);
 
-  useEffect(() => {
-    if (handError) {
-      console.warn("Hand tracking is unavailable; body tracking will continue", handError);
-    }
-  }, [handError]);
-
-  if (isStreaming && (isMediaPipeLoading || !poseLandmarker)) {
+  if (status !== 'idle' && (isMediaPipeLoading || !poseLandmarker)) {
     return (
       <div className={`w-full h-full ${className}`}>
         <CameraPlaceholder message="INITIALIZING MEDIAPIPE..." />
@@ -88,23 +67,22 @@ export function VideoStream({
     return (
       <div className={`w-full h-full flex flex-col items-center justify-center ${className}`}>
         <CameraPlaceholder message="CAMERA ERROR" />
-        <p className="text-red-400 text-sm mt-2 max-w-md text-center">
+        <p className="text-error text-sm mt-2 max-w-md text-center">
           {formatErrorMessage(streamError || mediaPipeError)}
         </p>
       </div>
     );
   }
 
-return (
+  return (
     <div className={`w-full h-full ${className}`}>
-      {isStreaming && stream ? (
-        <div className="relative w-full h-full item-center justify-center">
+      {status !== 'idle' && stream ? (
+        <div className="relative w-full h-full flex items-center justify-center">
           <VideoCanvas
             videoRef={videoRef}
             canvasRef={canvasRef}
             stream={stream}
           />
-          
           <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
             <CalibrateOutline calibrateStatus={calibrateStatus} />
           </div>
