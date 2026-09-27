@@ -5,6 +5,7 @@ import { VideoStream, ModelViewer } from '@/components/video';
 import { Button, ViewPanel } from '@/components/ui';
 import type { SessionStatus, PoseDetectionResult } from '@/types';
 import type { CalibrationStatus } from '@/types/calibrate';
+import { StatusBar } from '@/components/ui/StatusBar';
 
 interface ActiveSessionViewProps {
   status: SessionStatus;
@@ -29,39 +30,16 @@ export function ActiveSessionView({
 }: ActiveSessionViewProps) {
   return (
     <div className="flex flex-col items-center gap-6 w-full">
-      <div className="flex items-center justify-between w-full bg-secondary 0 p-4 rounded-xl border border-secondary-foreground">
-        <div className="flex items-center gap-2">
-          <span
-            className={`w-3 h-3 rounded-full ${
-              status === 'active'
-                ? 'bg-accent'
-                : status === 'paused'
-                ? 'bg-warn'
-                : 'bg-error'
-            }`}
-          />
-          <span className="text-sm font-medium capitalize text-white">
-            Status: {status}
-          </span>
-        </div>
 
-        <div className="flex gap-3">
-          {status === 'active' && (
-            <Button onClick={onPause} variant="primary">
-              Pause
-            </Button>
-          )}
-          {status === 'paused' && (
-            <Button onClick={onResume}>
-              Resume
-            </Button>
-          )}
-          <Button onClick={onStop} variant="outline">
-            Stop
-          </Button>
-        </div>
-      </div>
-
+      <StatusBar 
+        status={status}
+        calibrateStatus={calibrateStatus}
+        onError={onError}
+        onPause={onPause}
+        onResume={onResume}
+        onStop={onStop}
+      />
+  
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch w-full">
         <ViewPanel className="aspect-3/4 relative">
           <VideoStream
