@@ -1,4 +1,4 @@
-export { useCalibrate } from './useCalibrate';
+export { useCalibrationController } from './useCalibrationController';
 export { useMediaPipe } from './useMediaPipe';
 export { useVideoStream } from './useVideoStream';
 export { useThreeScene } from './useThreeScene';

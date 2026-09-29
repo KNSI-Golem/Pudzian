@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import type { PoseDetectionResult } from "@/types";
 import { POSE_LANDMARK } from "@/lib/mediapipe";
-import { isCalibrated } from "../process";
+import { isPoseCorrect } from "../process";
 
 function pose(noseX: number, visibility = 1): PoseDetectionResult {
   const landmarks = Array.from(
@@ -16,17 +16,17 @@ function pose(noseX: number, visibility = 1): PoseDetectionResult {
 
 describe("calibration readiness", () => {
   it("accepts a visible centered pose", () => {
-    expect(isCalibrated(pose(0.5))).toBe(true);
+    expect(isPoseCorrect(pose(0.5))).toBe(true);
   });
 
   it("rejects off-center and low-visibility poses", () => {
-    expect(isCalibrated(pose(0.1))).toBe(false);
-    expect(isCalibrated(pose(0.5, 0.2))).toBe(false);
+    expect(isPoseCorrect(pose(0.1))).toBe(false);
+    expect(isPoseCorrect(pose(0.5, 0.2))).toBe(false);
   });
 
   it("treats incomplete detector output as not ready", () => {
     expect(
-      isCalibrated({ landmarks: [[]], worldLandmarks: [[]] }),
+      isPoseCorrect({ landmarks: [[]], worldLandmarks: [[]] }),
     ).toBe(false);
   });
 });

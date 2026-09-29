@@ -1,10 +1,10 @@
 export type CalibrationStatus = 'NO' | 'STARTED' | 'YES';
 
 export type CalibrationEvent =
-  | { type: 'POSE_OK' }       // poza widoczna i wyśrodkowana
-  | { type: 'POSE_LOST' }     // straciliśmy dobrą pozę
-  | { type: 'HOLD_ELAPSED' }  // utrzymano pozę przez czas trzymania
-  | { type: 'FAILURE' };      // ModelViewer nie złapał stabilnej referencji
+  | { type: 'POSE_OK' }
+  | { type: 'POSE_LOST' }
+  | { type: 'HOLD_ELAPSED' }
+  | { type: 'FAILURE' };
 
 export type CalibrateConfig = {
   detectionDelay: number;

@@ -12,7 +12,7 @@ export function SessionOrchestrator() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [state, dispatch] = useReducer(SessionReducer, initialSessionState);
-  const { calibrateStatus } = useCalibrationController({ poseRef });
+  const { calibrateStatus, handleCalibrationFailure } = useCalibrationController({ poseRef });
 
   const handleError = useCallback((error: string) => {
     dispatch({ type: 'ERROR', payload: error });
@@ -31,6 +31,7 @@ export function SessionOrchestrator() {
           videoRef={videoRef}
           poseRef={poseRef}
           calibrateStatus={calibrateStatus}
+          onCalibrationFailure={handleCalibrationFailure}
           onError={handleError}
           onPause={() => dispatch({ type: 'PAUSE' })}
           onResume={() => dispatch({ type: 'RESUME' })}

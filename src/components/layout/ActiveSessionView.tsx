@@ -12,6 +12,7 @@ interface ActiveSessionViewProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   poseRef: React.RefObject<PoseDetectionResult | null>;
   calibrateStatus: CalibrationStatus;
+  onCalibrationFailure: () => void;
   onError: (error: string) => void;
   onPause: () => void;
   onResume: () => void;
@@ -23,6 +24,7 @@ export function ActiveSessionView({
   videoRef,
   poseRef,
   calibrateStatus,
+  onCalibrationFailure,
   onError,
   onPause,
   onResume,
@@ -66,6 +68,7 @@ export function ActiveSessionView({
             onError={onError}
             poseRef={poseRef}
             calibrateStatus={calibrateStatus}
+            onCalibrationFailure={onCalibrationFailure}
           />
         </ViewPanel>
       </div>

@@ -8,7 +8,7 @@ const CALIBRATE_JOINTS_CONFIG: CalibrateJointConfig = {
   center_margin: 0.2,
 };
 
-export function isCalibrated(poseDetection: PoseDetectionResult): boolean {
+export function isPoseCorrect(poseDetection: PoseDetectionResult): boolean {
   return isPoseVisible(poseDetection) && isPoseCentered(poseDetection);
 }
 
