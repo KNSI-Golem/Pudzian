@@ -33,7 +33,6 @@ export function ActiveSessionView({
 
       <StatusBar 
         status={status}
-        calibrateStatus={calibrateStatus}
         onError={onError}
         onPause={onPause}
         onResume={onResume}
