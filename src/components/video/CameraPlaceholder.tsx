@@ -12,7 +12,7 @@ export function CameraIcon() {
         strokeLinecap="round" 
         strokeLinejoin="round" 
         strokeWidth="2" 
-        d="M15 10l4.55a1 1 0 011.45.89V14a1 1 0 01-1.45.89L15 12M4 6h11a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"
+        d="M16 9l5-3v12l-5-3M4 6h11a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"
       />
     </svg>
   );
