@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { isCalibrated } from "@/lib/calibrate";
+import { isTrackingResultFresh } from "@/lib/mediapipe/trackingFrame";
 import type { PoseDetectionResult } from '@/types';
 
 interface UseCalibrateReturn {
@@ -19,7 +20,7 @@ export function useCalibrate(options: UseCalibrateOptions): UseCalibrateReturn {
     
     const poseDetection = poseRef?.current;
 
-    if (poseDetection) {
+    if (isTrackingResultFresh(poseDetection, performance.now())) {
       const calibrated = isCalibrated(poseDetection);
       setSuccess(calibrated);
     } else {

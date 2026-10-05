@@ -49,7 +49,10 @@ export type TrackingFrame = {
   detectedHands?: readonly DetectedHand[];
   leftHand?: AssignedHand;
   rightHand?: AssignedHand;
+  /** Input time; hand assignment must use observation time rather than delivery time. */
   timestampMs: number;
+  /** Arrival time; slow inference must not look like a frozen camera. */
+  receivedAtMs?: number;
   imageSize: Readonly<{ width: number; height: number }>;
 };
 

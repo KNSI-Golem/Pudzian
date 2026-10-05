@@ -10,6 +10,7 @@ import type {
   PoseDetectionResult,
 } from "@/types";
 import type { CalibrationStatus } from "@/types/calibrate";
+import { isTrackingResultFresh } from "@/lib/mediapipe/trackingFrame";
 import {
   buildRetargetRig,
   BodyCalibrationReference,
@@ -261,7 +262,10 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         ? 1000 / 60
         : timestampMs - previousTimestampMs;
     lastAnimationTimeRef.current = timestampMs;
-    const pose = poseRef?.current;
+    const detectedPose = poseRef?.current;
+    const pose = isTrackingResultFresh(detectedPose, timestampMs)
+      ? detectedPose
+      : undefined;
     const rig = rigRef.current;
     resetOnCalibrationRestart(
       previousCalibrationStatusRef.current,
@@ -379,7 +383,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
               rig,
               hand,
               handObservation,
-              trackingFrame?.timestampMs ?? timestampMs,
+              trackingFrame?.receivedAtMs ?? trackingFrame?.timestampMs ?? timestampMs,
             );
           setHandCalibrationStatus((current) =>
             current[side] === handCalibration.status
