@@ -82,7 +82,7 @@ export function ModelViewer({
             const status = handCalibrationStatus[side];
             const instruction =
               status === "waiting"
-                ? "show open palm"
+                ? "show the back of an open hand, fingers up"
                 : status === "sampling"
                   ? "hold steady"
                   : "calibrated";

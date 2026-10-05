@@ -6,6 +6,7 @@ import { Button, ViewPanel, AwakeningGrid } from '@/components/ui';
 import type { GolemUIState, PoseDetectionResult } from '@/types';
 import { useCalibrate } from '@/hooks';
 import { CalibrationStatus } from '@/types/calibrate';
+import { BODY_CALIBRATION_DURATION_MS } from '@/lib/animate';
 
 export default function Home() {
   const poseRef = useRef<PoseDetectionResult | null>(null);
@@ -60,7 +61,7 @@ export default function Home() {
       const timer = setTimeout(() => {
         calibrationAcceptedRef.current = true;
         setCalibrateStatus('YES');
-      }, 2000);
+      }, BODY_CALIBRATION_DURATION_MS);
 
       return () => clearTimeout(timer);
     }

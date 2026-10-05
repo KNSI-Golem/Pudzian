@@ -13,6 +13,7 @@ import type { CalibrationStatus } from "@/types/calibrate";
 import {
   buildRetargetRig,
   BodyCalibrationReference,
+  BodyTrackingLossMonitor,
   BODY_BONE_ORDER,
   fitPerspectiveCameraToBounds,
   HandCalibrationTracker,
@@ -76,6 +77,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const previousCalibrationStatusRef = useRef<CalibrationStatus | undefined>(
     undefined,
   );
+  const trackingLossMonitorRef = useRef(new BodyTrackingLossMonitor());
   const handCalibrationsRef = useRef({
     left: new HandCalibrationTracker("left"),
     right: new HandCalibrationTracker("right"),
@@ -85,7 +87,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const loadedGltfRef = useRef<GLTF | null>(null);
   const modelBoundsRef = useRef<THREE.Box3 | null>(null);
   const loadGenerationRef = useRef(0);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [model, setModel] = useState<ModelLoadResult | null>(null);
@@ -172,6 +174,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     bodyCalibrationRef.current.reset();
     lastCalibrationPoseRef.current = null;
     previousCalibrationStatusRef.current = undefined;
+    trackingLossMonitorRef.current.reset();
     handCalibrationsRef.current.left.reset();
     handCalibrationsRef.current.right.reset();
     stabilizerRef.current.reset();
@@ -264,10 +267,12 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       previousCalibrationStatusRef.current,
       calibrateStatus,
       () => {
+        bodyCalibrationRef.current.reset();
+        trackingLossMonitorRef.current.reset();
         handCalibrationsRef.current.left.reset();
         handCalibrationsRef.current.right.reset();
-        setHandCalibrationStatus({ left: "waiting", right: "waiting" });
         stabilizerRef.current.reset();
+        setHandCalibrationStatus({ left: "waiting", right: "waiting" });
       },
     );
     previousCalibrationStatusRef.current = calibrateStatus;
@@ -337,10 +342,23 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
             bone.updateWorldMatrix(false, false);
           }
         };
-        applyTargets(
-          BODY_BONE_ORDER,
-          solveBodyWorldTargets(rig, observation, reference),
+        const bodyTargets = solveBodyWorldTargets(
+          rig,
+          observation,
+          reference,
         );
+        applyTargets(BODY_BONE_ORDER, bodyTargets);
+        if (
+          trackingLossMonitorRef.current.update(
+            bodyTargets.length > 0,
+            timestampMs,
+          )
+        ) {
+          console.warn(
+            "Calibration restarted after sustained body tracking loss",
+          );
+          onCalibrationFailure?.();
+        }
 
         const trackingFrame = pose?.trackingFrame;
         for (const side of ["left", "right"] as const) {
