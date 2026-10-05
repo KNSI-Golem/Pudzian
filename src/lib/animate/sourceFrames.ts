@@ -4,6 +4,34 @@ import type { FrameFailureReason, FrameResult } from "@/types";
 export const FRAME_EPSILON = 1e-6;
 export const COLLINEAR_EPSILON = 1e-4;
 
+const PALM_LOCAL_INWARD = new THREE.Vector3(0, 0, -1);
+
+export function hingeFromPalmSpread(
+  spreadDirection: THREE.Vector3,
+): THREE.Vector3 | undefined {
+  const planar = new THREE.Vector3(
+    spreadDirection.x,
+    spreadDirection.y,
+    0,
+  );
+  if (planar.lengthSq() < COLLINEAR_EPSILON) return undefined;
+  return new THREE.Vector3()
+    .crossVectors(planar.normalize(), PALM_LOCAL_INWARD)
+    .normalize();
+}
+
+export function frameFromDirectionAndHinge(
+  direction: THREE.Vector3,
+  hinge: THREE.Vector3,
+  confidence = 1,
+): FrameResult {
+  return frameFromUpAndForward(
+    direction,
+    new THREE.Vector3().crossVectors(hinge, direction),
+    confidence,
+  );
+}
+
 function invalid(reason: FrameFailureReason): FrameResult {
   return { valid: false, reason };
 }
@@ -87,4 +115,30 @@ export function frameFromPrimaryAndPlane(
   }
 
   return frameFromUpAndForward(primaryDirection, normal, confidence);
+}
+
+// Fitting the knuckle row avoids using one noisy edge as the palm width.
+export function palmAxes(
+  wrist: THREE.Vector3,
+  knuckles: readonly THREE.Vector3[],
+): { up: THREE.Vector3; across: THREE.Vector3 } {
+  const up = knuckles[1].clone().sub(wrist);
+  const across = new THREE.Vector3();
+  for (const [index, point] of knuckles.entries()) {
+    across.addScaledVector(point, 1.5 - index);
+  }
+  return {
+    up,
+    across: across.multiplyScalar(0.6),
+  };
+}
+
+export function frameFromPalm(
+  wrist: THREE.Vector3,
+  knuckles: readonly THREE.Vector3[],
+  side: "left" | "right",
+  confidence = 1,
+): FrameResult {
+  const { up, across } = palmAxes(wrist, knuckles);
+  return frameFromPrimaryAndPlane(up, across.multiplyScalar(side === "left" ? -1 : 1), confidence);
 }

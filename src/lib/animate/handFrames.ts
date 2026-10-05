@@ -1,110 +1,209 @@
 import * as THREE from "three";
-import type { AssignedHand, DirectionResult, FrameResult } from "@/types";
+import type { AssignedHand, TrackingFrame } from "@/types";
 import { HAND_LANDMARK } from "@/lib/mediapipe";
-import {
-  LEFT_FINGER_CHAINS,
-  RIGHT_FINGER_CHAINS,
-  type RetargetBoneId,
-} from "./boneConfig";
+import type { FingerChainConfig } from "./boneConfig";
 import { worldLandmarkToVector } from "./coordinateSpace";
-import { FRAME_EPSILON, frameFromUpAndForward } from "./sourceFrames";
+import { frameFromPalm } from "./sourceFrames";
 
-export type HandSourceFrames = Readonly<
-  Partial<Record<RetargetBoneId, FrameResult>>
->;
-
-export type HandSourceDirections = Readonly<
-  Partial<Record<RetargetBoneId, DirectionResult>>
->;
+const MIN_HAND_SPAN = 1e-6;
+const MIN_SEGMENT_LENGTH = 0.01;
 
 export type HandObservation = Readonly<{
-  frames: HandSourceFrames;
-  directions: HandSourceDirections;
+  side: "left" | "right";
+  palmWorldRotation: THREE.Quaternion;
+  screenPoints: readonly THREE.Vector2[];
+  worldPalmPoints: readonly THREE.Vector3[];
 }>;
 
-function invalidFrame(): FrameResult {
-  return { valid: false, reason: "missing-landmark" };
-}
-
-function invalidDirection(): DirectionResult {
-  return { valid: false, reason: "missing-landmark" };
-}
-
-function handPoint(
+function imagePoint(
   hand: AssignedHand,
   index: number,
-): THREE.Vector3 | undefined {
-  const landmark = hand.worldLandmarks[index];
-  return landmark ? worldLandmarkToVector(landmark) : undefined;
-}
-
-function segmentDirection(
-  start: THREE.Vector3,
-  end: THREE.Vector3,
-  confidence: number,
-): DirectionResult {
-  const value = end.clone().sub(start);
-  if (
-    !Number.isFinite(value.x) ||
-    !Number.isFinite(value.y) ||
-    !Number.isFinite(value.z)
-  ) {
-    return { valid: false, reason: "non-finite" };
-  }
-  if (value.lengthSq() < FRAME_EPSILON) {
-    return { valid: false, reason: "zero-length" };
-  }
-  return {
-    valid: true,
-    direction: value.normalize(),
-    confidence: THREE.MathUtils.clamp(confidence, 0, 1),
-  };
-}
-
-export function solvePalmFrame(hand: AssignedHand): FrameResult {
-  const wrist = handPoint(hand, HAND_LANDMARK.wrist);
-  const index = handPoint(hand, HAND_LANDMARK.indexMcp);
-  const middle = handPoint(hand, HAND_LANDMARK.middleMcp);
-  const pinky = handPoint(hand, HAND_LANDMARK.pinkyMcp);
-  if (!wrist || !index || !middle || !pinky) return invalidFrame();
-
-  const palmUp = middle.clone().sub(wrist);
-  const acrossPalm =
-    hand.side === "left"
-      ? index.clone().sub(pinky)
-      : pinky.clone().sub(index);
-  const palmNormal = new THREE.Vector3().crossVectors(acrossPalm, palmUp);
-  return frameFromUpAndForward(
-    palmUp,
-    palmNormal,
-    hand.stale ? hand.assignmentConfidence * 0.5 : hand.assignmentConfidence,
+  imageSize: TrackingFrame["imageSize"],
+): THREE.Vector3 {
+  const point = hand.imageLandmarks[index];
+  return new THREE.Vector3(
+    point.x,
+    -point.y * imageSize.height / imageSize.width,
+    -point.z,
   );
 }
 
-export function solveHandObservation(hand: AssignedHand): HandObservation {
-  const palm = solvePalmFrame(hand);
-  const handBone: RetargetBoneId =
-    hand.side === "left" ? "leftHand" : "rightHand";
-  const frames: Partial<Record<RetargetBoneId, FrameResult>> = {
-    [handBone]: palm,
-  };
-  const directions: Partial<Record<RetargetBoneId, DirectionResult>> = {};
-  const chains =
-    hand.side === "left" ? LEFT_FINGER_CHAINS : RIGHT_FINGER_CHAINS;
-  const confidence = hand.stale
-    ? hand.assignmentConfidence * 0.5
-    : hand.assignmentConfidence;
+function normalizedPalmPoints(
+  points: readonly THREE.Vector3[],
+  wristIndex: number,
+  knuckleIndices: readonly number[],
+  side: "left" | "right",
+): readonly THREE.Vector3[] | undefined {
+  const wrist = points[wristIndex];
+  const knuckles = knuckleIndices.map((index) => points[index]);
+  const span = Math.max(
+    wrist.distanceTo(knuckles[1]),
+    knuckles[0].distanceTo(knuckles[3]),
+  );
+  if (span <= MIN_HAND_SPAN) return undefined;
 
-  for (const chain of chains) {
-    chain.bones.forEach((boneId, segmentIndex) => {
-      const start = handPoint(hand, chain.landmarks[segmentIndex]);
-      const end = handPoint(hand, chain.landmarks[segmentIndex + 1]);
-      directions[boneId] =
-        start && end
-          ? segmentDirection(start, end, confidence)
-          : invalidDirection();
-    });
+  const palm = frameFromPalm(wrist, knuckles, side);
+  if (!palm.valid) return undefined;
+  const inversePalm = palm.rotation.clone().invert();
+
+  return Object.freeze(
+    points.map((point) =>
+      point
+        .clone()
+        .sub(wrist)
+        .divideScalar(span)
+        .applyQuaternion(inversePalm),
+    ),
+  );
+}
+
+function directionsFromPoints(
+  points: readonly THREE.Vector3[],
+  chain: FingerChainConfig,
+): readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3] | undefined {
+  const directions = chain.bones.map((_, index) =>
+    points[chain.landmarks[index + 1]]
+      .clone()
+      .sub(points[chain.landmarks[index]]),
+  );
+
+  if (
+    directions.some(
+      (direction) =>
+        !direction.toArray().every(Number.isFinite) ||
+        direction.length() < MIN_SEGMENT_LENGTH,
+    )
+  ) {
+    return undefined;
   }
 
-  return { frames, directions };
+  return directions.map((direction) =>
+    direction.normalize(),
+  ) as [THREE.Vector3, THREE.Vector3, THREE.Vector3];
+}
+
+// Image landmarks set the camera frame; world landmarks supply intrinsic shape.
+export function solveHandObservation(
+  hand: AssignedHand,
+  imageSize: TrackingFrame["imageSize"],
+): HandObservation | undefined {
+  if (
+    hand.stale ||
+    hand.imageLandmarks.length !== 21 ||
+    hand.worldLandmarks.length !== 21 ||
+    !Number.isFinite(imageSize.width) ||
+    !Number.isFinite(imageSize.height) ||
+    imageSize.width <= 0 ||
+    imageSize.height <= 0
+  ) {
+    return undefined;
+  }
+
+  const imagePoints = hand.imageLandmarks.map((_, index) =>
+    imagePoint(hand, index, imageSize),
+  );
+  const worldPoints = hand.worldLandmarks.map(worldLandmarkToVector);
+  if (
+    imagePoints.some((point) => !point.toArray().every(Number.isFinite)) ||
+    worldPoints.some((point) => !point.toArray().every(Number.isFinite))
+  ) {
+    return undefined;
+  }
+
+  const wrist = imagePoints[HAND_LANDMARK.wrist];
+  const knuckleIndices = [
+    HAND_LANDMARK.indexMcp,
+    HAND_LANDMARK.middleMcp,
+    HAND_LANDMARK.ringMcp,
+    HAND_LANDMARK.pinkyMcp,
+  ] as const;
+  const knuckles = knuckleIndices.map((index) => imagePoints[index]);
+  const imageSpan = Math.max(
+    wrist.distanceTo(knuckles[1]),
+    knuckles[0].distanceTo(knuckles[3]),
+  );
+  if (imageSpan <= MIN_HAND_SPAN) return undefined;
+
+  const palm = frameFromPalm(
+    wrist,
+    knuckles,
+    hand.side,
+    hand.assignmentConfidence,
+  );
+  if (!palm.valid) return undefined;
+
+  const worldPalmPoints = normalizedPalmPoints(
+    worldPoints,
+    HAND_LANDMARK.wrist,
+    knuckleIndices,
+    hand.side,
+  );
+  if (!worldPalmPoints) return undefined;
+
+  return Object.freeze({
+    side: hand.side,
+    palmWorldRotation: palm.rotation.clone().normalize(),
+    screenPoints: Object.freeze(
+      imagePoints.map((point) =>
+        new THREE.Vector2(
+          (point.x - wrist.x) / imageSpan,
+          (point.y - wrist.y) / imageSpan,
+        ),
+      ),
+    ),
+    worldPalmPoints,
+  });
+}
+
+export function worldFingerDirections(
+  observation: HandObservation,
+  chain: FingerChainConfig,
+): readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3] | undefined {
+  return directionsFromPoints(observation.worldPalmPoints, chain);
+}
+
+// Preserve image connector azimuths; world geometry supplies depth inclination.
+export function fingerDirections(
+  observation: HandObservation,
+  chain: FingerChainConfig,
+): readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3] | undefined {
+  const worldDirections = worldFingerDirections(observation, chain);
+  if (!worldDirections) return undefined;
+
+  const inversePalm = observation.palmWorldRotation.clone().invert();
+  const result: THREE.Vector3[] = [];
+
+  for (const [index, worldDirection] of worldDirections.entries()) {
+    const screenDelta = observation.screenPoints[chain.landmarks[index + 1]]
+      .clone()
+      .sub(observation.screenPoints[chain.landmarks[index]]);
+    if (screenDelta.length() < MIN_SEGMENT_LENGTH) {
+      // Near the optical axis, the screen connector has no observable direction.
+      result.push(worldDirection.clone());
+      continue;
+    }
+    screenDelta.normalize();
+
+    const worldDirectionCamera = worldDirection
+      .clone()
+      .applyQuaternion(observation.palmWorldRotation)
+      .normalize();
+    const transverseMagnitude = Math.hypot(
+      worldDirectionCamera.x,
+      worldDirectionCamera.y,
+    );
+
+    result.push(
+      new THREE.Vector3(
+        screenDelta.x * transverseMagnitude,
+        screenDelta.y * transverseMagnitude,
+        THREE.MathUtils.clamp(worldDirectionCamera.z, -1, 1),
+      )
+        .normalize()
+        .applyQuaternion(inversePalm)
+        .normalize(),
+    );
+  }
+
+  return result as [THREE.Vector3, THREE.Vector3, THREE.Vector3];
 }

@@ -1,3 +1,4 @@
+import type { RetargetModelConfig } from "@/lib/animate/rigProfiles";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import {
@@ -54,14 +55,14 @@ function disposeObject(root: THREE.Object3D): void {
 }
 
 export interface UseThreeSceneOptions {
-  modelPath?: string;
+  modelConfig?: RetargetModelConfig;
   poseRef?: React.RefObject<PoseDetectionResult | null>;
   calibrateStatus?: CalibrationStatus;
   onCalibrationFailure?: () => void;
 }
 export function useThreeScene(options: UseThreeSceneOptions = {}) {
   const {
-    modelPath,
+    modelConfig,
     poseRef,
     calibrateStatus,
     onCalibrationFailure,
@@ -182,7 +183,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
     lastAnimationTimeRef.current = undefined;
   }, []);
 
-  const loadModel = useCallback(async (path: string) => {
+  const loadModel = useCallback(async (config: RetargetModelConfig) => {
     const targetScene = sceneRef.current;
     if (!targetScene) return;
     const generation = ++loadGenerationRef.current;
@@ -208,7 +209,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
       const loader = new GLTFLoader();
       pendingGltf = await new Promise<GLTF>((resolve, reject) => {
-        loader.load(path, resolve, undefined, reject);
+        loader.load(config.path, resolve, undefined, reject);
       });
       if (
         loadGenerationRef.current !== generation ||
@@ -219,7 +220,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
       }
 
       pendingGltf.scene.updateWorldMatrix(true, true);
-      rigRef.current = buildRetargetRig(pendingGltf.scene);
+      rigRef.current = buildRetargetRig(pendingGltf.scene, config.rig);
       handCalibrationsRef.current.left.reset();
       handCalibrationsRef.current.right.reset();
       setHandCalibrationStatus({ left: "waiting", right: "waiting" });
@@ -358,13 +359,13 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
               ? trackingFrame.leftHand
               : trackingFrame.rightHand
             : undefined;
-          const handObservation = hand
-            ? solveHandObservation(hand)
-            : undefined;
+          const handObservation =
+            hand && trackingFrame
+              ? solveHandObservation(hand, trackingFrame.imageSize)
+              : undefined;
           const handCalibration =
             handCalibrationsRef.current[side].update(
               rig,
-              hand,
               handObservation,
               trackingFrame?.receivedAtMs ?? trackingFrame?.timestampMs ?? timestampMs,
             );
@@ -435,8 +436,8 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
   }, [disposeScene, initScene, handleResize]);
 
   useEffect(() => {
-    if (modelPath && sceneRef.current) {
-      void loadModel(modelPath);
+    if (modelConfig && sceneRef.current) {
+      void loadModel(modelConfig);
     } else {
       loadGenerationRef.current += 1;
       setIsLoading(false);
@@ -454,7 +455,7 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
         setModel(null);
       }
     }
-  }, [modelPath, loadModel]);
+  }, [modelConfig, loadModel]);
 
   useEffect(() => {
     if (sceneRef.current) {

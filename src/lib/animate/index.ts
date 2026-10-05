@@ -12,3 +12,4 @@ export * from "./handFrames";
 export * from "./handCalibration";
 export * from "./handRetarget";
 export * from "./stability";
+export * from "./rigProfiles";

@@ -1,5 +1,9 @@
 import type { PoseDetectionResult } from "@/types";
 import { MEDIAPIPE_JOINTS_MAPPING } from "@/lib/mediapipe/mapping";
+import {
+  hasRequiredBodyReferenceFrames,
+  solveBodyObservation,
+} from "@/lib/animate";
 import type { CalibrateJointConfig } from "@/types";
 
 const CALIBRATE_JOINTS_CONFIG: CalibrateJointConfig = {
@@ -9,7 +13,13 @@ const CALIBRATE_JOINTS_CONFIG: CalibrateJointConfig = {
 };
 
 export function isCalibrated(poseDetection: PoseDetectionResult): boolean {
-  return isPoseVisible(poseDetection) && isPoseCentered(poseDetection);
+  return (
+    isPoseVisible(poseDetection) &&
+    isPoseCentered(poseDetection) &&
+    hasRequiredBodyReferenceFrames(
+      solveBodyObservation(poseDetection).frames,
+    )
+  );
 }
 
 export function isPoseVisible(poseDetection: PoseDetectionResult): boolean {

@@ -6,6 +6,7 @@ import { Button, ViewPanel, AwakeningGrid } from '@/components/ui';
 import type { GolemUIState, PoseDetectionResult } from '@/types';
 import { useCalibrate } from '@/hooks';
 import { CalibrationStatus } from '@/types/calibrate';
+import { SELECTED_MODEL } from '@/lib/animate/rigProfiles';
 import { BODY_CALIBRATION_DURATION_MS } from '@/lib/animate';
 
 export default function Home() {
@@ -108,7 +109,7 @@ export default function Home() {
             </div>
           ) : (
             <ModelViewer 
-              modelPath="/models/mixamo_blue_person.glb"
+              modelConfig={SELECTED_MODEL}
               isActive={uiState.isStreaming}
               onError={handleError}
               poseRef={poseRef}

@@ -5,7 +5,7 @@ import { useThreeScene } from '@/hooks/useThreeScene';
 import type { ModelViewerProps } from '@/types';
 
 export function ModelViewer({ 
-  modelPath, 
+  modelConfig,
   isActive, 
   className = "", 
   onError,
@@ -21,7 +21,7 @@ export function ModelViewer({
     model,
     handCalibrationStatus,
   } = useThreeScene({
-    modelPath: isActive ? modelPath : undefined,
+    modelConfig: isActive ? modelConfig : undefined,
     poseRef,
     calibrateStatus,
     onCalibrationFailure,
@@ -82,7 +82,7 @@ export function ModelViewer({
             const status = handCalibrationStatus[side];
             const instruction =
               status === "waiting"
-                ? "show the back of an open hand, fingers up"
+                ? "show the back of an open hand, fingers down"
                 : status === "sampling"
                   ? "hold steady"
                   : "calibrated";

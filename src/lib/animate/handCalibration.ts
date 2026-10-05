@@ -1,11 +1,14 @@
 import * as THREE from "three";
-import type { AssignedHand } from "@/types";
+import { MAX_TRACKING_FRAME_AGE_MS } from "../mediapipe/trackingFrame";
 import {
   LEFT_FINGER_CHAINS,
   RIGHT_FINGER_CHAINS,
   type FingerChainConfig,
 } from "./boneConfig";
-import type { HandObservation } from "./handFrames";
+import {
+  fingerDirections,
+  type HandObservation,
+} from "./handFrames";
 import {
   createHandReference,
   type HandReferencePose,
@@ -24,16 +27,17 @@ export type HandCalibrationUpdate = Readonly<{
 
 export const HAND_CALIBRATION_LIMITS = Object.freeze({
   palmFacingCameraRadians: THREE.MathUtils.degToRad(30),
-  fingersUpRadians: THREE.MathUtils.degToRad(35),
+  fingersDownRadians: THREE.MathUtils.degToRad(35),
   wristNeutralDot: Math.cos(THREE.MathUtils.degToRad(35)),
   extendedSegmentDot: Math.cos(THREE.MathUtils.degToRad(35)),
   minimumExtendedFingers: 3,
   samplingDurationMs: 350,
   minimumSamples: 10,
+  maximumObservationGapMs: MAX_TRACKING_FRAME_AGE_MS,
   maximumAngularSpreadRadians: THREE.MathUtils.degToRad(12),
 });
 
-const CAMERA_UP = new THREE.Vector3(0, 1, 0);
+const CAMERA_DOWN = new THREE.Vector3(0, -1, 0);
 const CAMERA_FORWARD = new THREE.Vector3(0, 0, 1);
 const PALM_LOCAL_UP = new THREE.Vector3(0, 1, 0);
 const PALM_LOCAL_FORWARD = new THREE.Vector3(0, 0, 1);
@@ -52,47 +56,35 @@ function isExtended(
   observation: HandObservation,
   chain: FingerChainConfig,
 ): boolean {
-  const directions = chain.bones.map(
-    (boneId) => observation.directions[boneId],
-  );
-  if (directions.some((direction) => !direction?.valid)) return false;
-  const [first, second, third] = directions as [
-    Extract<(typeof directions)[number], { valid: true }>,
-    Extract<(typeof directions)[number], { valid: true }>,
-    Extract<(typeof directions)[number], { valid: true }>,
-  ];
-  return (
-    first.direction.dot(second.direction) >=
-      HAND_CALIBRATION_LIMITS.extendedSegmentDot &&
-    second.direction.dot(third.direction) >=
-      HAND_CALIBRATION_LIMITS.extendedSegmentDot
+  const directions = fingerDirections(observation, chain);
+  return Boolean(
+    directions &&
+      directions[0].dot(directions[1]) >=
+        HAND_CALIBRATION_LIMITS.extendedSegmentDot &&
+      directions[1].dot(directions[2]) >=
+        HAND_CALIBRATION_LIMITS.extendedSegmentDot,
   );
 }
 
 export function isHandCalibrationPose(
-  hand: AssignedHand,
   observation: HandObservation,
 ): boolean {
-  if (hand.stale) return false;
-  const handBone = hand.side === "left" ? "leftHand" : "rightHand";
-  const palm = observation.frames[handBone];
-  if (!palm?.valid) return false;
-
-  const palmUp = PALM_LOCAL_UP.clone().applyQuaternion(palm.rotation);
-  const palmForward = PALM_LOCAL_FORWARD
-    .clone()
-    .applyQuaternion(palm.rotation);
+  const palmUp = PALM_LOCAL_UP.clone().applyQuaternion(
+    observation.palmWorldRotation,
+  );
+  const palmForward = PALM_LOCAL_FORWARD.clone().applyQuaternion(
+    observation.palmWorldRotation,
+  );
   if (
     palmForward.angleTo(CAMERA_FORWARD) >
       HAND_CALIBRATION_LIMITS.palmFacingCameraRadians ||
-    palmUp.angleTo(CAMERA_UP) >
-      HAND_CALIBRATION_LIMITS.fingersUpRadians
+    palmUp.angleTo(CAMERA_DOWN) >
+      HAND_CALIBRATION_LIMITS.fingersDownRadians
   ) {
     return false;
   }
 
-  const chains = nonThumbChains(hand.side);
-  const extended = chains.filter((chain) =>
+  const extended = nonThumbChains(observation.side).filter((chain) =>
     isExtended(observation, chain),
   );
   if (
@@ -102,22 +94,20 @@ export function isHandCalibrationPose(
   }
 
   const firstSegments = extended
-    .map((chain) => observation.directions[chain.bones[0]])
+    .map((chain) => fingerDirections(observation, chain)?.[0])
     .filter(
-      (
-        direction,
-      ): direction is Extract<typeof direction, { valid: true }> =>
-        Boolean(direction?.valid),
+      (direction): direction is THREE.Vector3 => Boolean(direction),
     );
   const averageFingerDirection = firstSegments
     .reduce(
-      (sum, direction) => sum.add(direction.direction),
+      (sum, direction) => sum.add(direction),
       new THREE.Vector3(),
     )
     .normalize();
+
   return (
     averageFingerDirection.lengthSq() > 0 &&
-    averageFingerDirection.dot(palmUp) >=
+    averageFingerDirection.dot(PALM_LOCAL_UP) >=
       HAND_CALIBRATION_LIMITS.wristNeutralDot
   );
 }
@@ -126,7 +116,7 @@ function averageRotations(
   samples: readonly THREE.Quaternion[],
 ): THREE.Quaternion {
   const first = samples[0];
-  const sum = new THREE.Vector4();
+  const sum = new THREE.Vector4(0, 0, 0, 0);
   for (const sample of samples) {
     const sign = first.dot(sample) < 0 ? -1 : 1;
     sum.x += sample.x * sign;
@@ -138,87 +128,114 @@ function averageRotations(
 }
 
 export class HandCalibrationTracker {
-  private status: HandCalibrationStatus = "waiting";
   private readonly samples: THREE.Quaternion[] = [];
-  private samplingStartedAtMs: number | undefined;
+  private stableDurationMs = 0;
   private lastSampleTimestampMs: number | undefined;
+  private interrupted = false;
   private reference: HandReferencePose | undefined;
 
   constructor(readonly side: "left" | "right") {}
 
   reset(): void {
-    this.status = "waiting";
     this.samples.length = 0;
-    this.samplingStartedAtMs = undefined;
+    this.stableDurationMs = 0;
     this.lastSampleTimestampMs = undefined;
+    this.interrupted = false;
     this.reference = undefined;
   }
 
   getStatus(): HandCalibrationStatus {
-    return this.status;
+    if (this.reference) return "calibrated";
+    return this.samples.length > 0 ? "sampling" : "waiting";
   }
 
   update(
     rig: RetargetRig,
-    hand: AssignedHand | undefined,
     observation: HandObservation | undefined,
     timestampMs: number,
   ): HandCalibrationUpdate {
     if (this.reference) {
       return { status: "calibrated", reference: this.reference };
     }
+
+    let sampleGapMs =
+      this.lastSampleTimestampMs === undefined
+        ? undefined
+        : timestampMs - this.lastSampleTimestampMs;
+    // Missing observations interrupt the sampling window; slow but fresh
+    // detector updates still contribute distinct, steady samples.
     if (
-      !hand ||
-      hand.side !== this.side ||
-      !observation ||
-      !isHandCalibrationPose(hand, observation)
+      sampleGapMs !== undefined &&
+      sampleGapMs > HAND_CALIBRATION_LIMITS.maximumObservationGapMs &&
+      (!observation || this.interrupted)
     ) {
       this.reset();
-      return { status: this.status };
+      sampleGapMs = undefined;
+    }
+
+    if (!observation) {
+      if (this.samples.length > 0 && sampleGapMs !== undefined) {
+        this.interrupted = true;
+        return { status: "sampling" };
+      }
+      this.reset();
+      return { status: "waiting" };
+    }
+
+    if (
+      observation.side !== this.side ||
+      !isHandCalibrationPose(observation)
+    ) {
+      this.reset();
+      return { status: "waiting" };
     }
     if (timestampMs === this.lastSampleTimestampMs) {
-      return { status: this.status };
-    }
-    this.lastSampleTimestampMs = timestampMs;
-
-    const handBone =
-      this.side === "left" ? "leftHand" : "rightHand";
-    const palm = observation.frames[handBone];
-    if (!palm?.valid) {
-      this.reset();
-      return { status: this.status };
-    }
-    if (this.status === "waiting") {
-      this.status = "sampling";
-      this.samplingStartedAtMs = timestampMs;
-    }
-    this.samples.push(palm.rotation.clone().normalize());
-
-    const average = averageRotations(this.samples);
-    const excessiveSpread = this.samples.some(
-      (sample) =>
-        sample.angleTo(average) >
-        HAND_CALIBRATION_LIMITS.maximumAngularSpreadRadians,
-    );
-    if (excessiveSpread) {
-      this.samples.splice(0, this.samples.length, palm.rotation.clone());
-      this.samplingStartedAtMs = timestampMs;
-      return { status: this.status };
+      return { status: this.getStatus() };
     }
 
-    const durationMs = timestampMs - (this.samplingStartedAtMs ?? timestampMs);
+    const sample = observation.palmWorldRotation.clone().normalize();
+
     if (
-      durationMs >= HAND_CALIBRATION_LIMITS.samplingDurationMs &&
+      this.samples.length > 0 &&
+      !this.interrupted &&
+      sampleGapMs !== undefined
+    ) {
+      this.stableDurationMs += sampleGapMs;
+    }
+    this.interrupted = false;
+    this.lastSampleTimestampMs = timestampMs;
+    this.samples.push(sample);
+
+    const averagePalm = averageRotations(
+      this.samples,
+    );
+    if (
+      this.samples.some(
+        (value) =>
+          value.angleTo(averagePalm) >
+          HAND_CALIBRATION_LIMITS.maximumAngularSpreadRadians,
+      )
+    ) {
+      this.samples.splice(0, this.samples.length, sample);
+      this.stableDurationMs = 0;
+      return { status: "sampling" };
+    }
+
+    if (
+      this.stableDurationMs >=
+        HAND_CALIBRATION_LIMITS.samplingDurationMs &&
       this.samples.length >= HAND_CALIBRATION_LIMITS.minimumSamples
     ) {
       this.reference = createHandReference(
         rig,
         this.side,
-        average,
-        timestampMs,
+        averagePalm,
       );
-      this.status = "calibrated";
     }
-    return { status: this.status, reference: this.reference };
+
+    return {
+      status: this.getStatus(),
+      reference: this.reference,
+    };
   }
 }
