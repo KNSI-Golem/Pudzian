@@ -25,6 +25,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: `${APP_CONFIG.fullName} ${APP_CONFIG.name}`,
   description: "Sztuczna inteligencja i rozpoznawanie postawy ciała",
+  icons: { icon: "/logo.svg" },
 };
 
 export default function RootLayout({

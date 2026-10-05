@@ -116,6 +116,7 @@ export function usePoseDetection({
             width: videoElement.videoWidth,
             height: videoElement.videoHeight,
           },
+          performance.now(),
         );
         const result = trackingResult
           ? assignHandsInResult(trackingResult, handAssignmentRef.current)

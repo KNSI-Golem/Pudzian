@@ -2,9 +2,10 @@ import * as THREE from 'three';
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { PoseDetectionResult } from './mediapipe';
 import type { CalibrationStatus } from './calibrate';
+import type { RetargetModelConfig } from '@/lib/animate/rigProfiles';
 
 export type ModelViewerProps = {
-  modelPath: string;
+  modelConfig: RetargetModelConfig;
   isActive: boolean;
   className?: string;
   onError?: (error: string) => void;

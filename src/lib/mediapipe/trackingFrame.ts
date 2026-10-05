@@ -15,6 +15,24 @@ import type {
 } from "@/types";
 import { handednessFromCategory } from "@/types";
 
+export const MAX_TRACKING_FRAME_AGE_MS = 150;
+
+export function isTrackingResultFresh(
+  result: PoseDetectionResult | null | undefined,
+  timestampMs: number,
+): result is PoseDetectionResult {
+  const frame = result?.trackingFrame;
+  if (!frame || !Number.isFinite(frame.timestampMs)) return false;
+  const receivedAtMs = frame.receivedAtMs ?? frame.timestampMs;
+  const ageMs = timestampMs - receivedAtMs;
+  return (
+    receivedAtMs >= frame.timestampMs &&
+    Number.isFinite(ageMs) &&
+    ageMs >= 0 &&
+    ageMs <= MAX_TRACKING_FRAME_AGE_MS
+  );
+}
+
 function freezeNormalized(
   landmarks: readonly NormalizedLandmark[],
 ): readonly NormalizedLandmark[] {
@@ -34,6 +52,7 @@ export function createTrackingResult(
   handResult: HandLandmarkerResult | undefined,
   timestampMs: number,
   imageSize: Readonly<{ width: number; height: number }>,
+  receivedAtMs = timestampMs,
 ): PoseDetectionResult | undefined {
   const poseImage = poseResult.landmarks[0];
   const poseWorld = poseResult.worldLandmarks[0];
@@ -71,6 +90,7 @@ export function createTrackingResult(
     poseWorldLandmarks: frozenPoseWorld,
     detectedHands: Object.freeze(detectedHands),
     timestampMs,
+    receivedAtMs,
     imageSize: Object.freeze({ ...imageSize }),
   });
 

@@ -8,7 +8,6 @@ import {
 } from "./boneConfig";
 import type { BodyObservation, BodySourceFrames } from "./bodyFrames";
 import { createReferencePose, type RetargetReferencePose } from "./referencePose";
-import { calibratedTargetWorldRotation } from "./retarget";
 import type { RetargetRig } from "./rig";
 
 export type BoneWorldTarget = Readonly<{
@@ -28,6 +27,14 @@ const DEFAULT_REFERENCE_WINDOW_OPTIONS: BodyReferenceWindowOptions = {
   maximumAngularDeviationRadians: THREE.MathUtils.degToRad(12),
 };
 
+const REQUIRED_BODY_REFERENCE_FRAMES = Object.freeze([
+  ...new Set(
+    BODY_BONE_CONFIG.flatMap((config) =>
+      config.mode === "frame" ? [config.source] : [],
+    ),
+  ),
+]);
+
 function validFrame(
   frames: BodySourceFrames,
   frameId: SourceFrameId,
@@ -36,22 +43,24 @@ function validFrame(
   return frame?.valid ? frame : undefined;
 }
 
+export function hasRequiredBodyReferenceFrames(
+  frames: BodySourceFrames,
+): boolean {
+  return REQUIRED_BODY_REFERENCE_FRAMES.every((frameId) =>
+    Boolean(validFrame(frames, frameId)),
+  );
+}
+
 export function captureBodyReference(
   frames: BodySourceFrames,
   capturedAtMs: number,
 ): RetargetReferencePose | undefined {
-  const requiredFrames = new Set(
-    BODY_BONE_CONFIG.flatMap((config) =>
-      config.mode === "frame" ? [config.source] : [],
-    ),
-  );
+  if (!hasRequiredBodyReferenceFrames(frames)) return undefined;
   const rotations: Partial<Record<SourceFrameId, THREE.Quaternion>> = {};
 
-  for (const frameId of requiredFrames) {
+  for (const frameId of REQUIRED_BODY_REFERENCE_FRAMES) {
     const frame = validFrame(frames, frameId);
-    if (!frame) {
-      return undefined;
-    }
+    if (!frame) return undefined;
     rotations[frameId] = frame.rotation;
   }
 
@@ -185,51 +194,68 @@ export function solveBodyWorldTargets(
   const targets: BoneWorldTarget[] = [];
   const referenceTorso = reference.sourceWorldRotations.torso;
   if (!referenceTorso) return targets;
-  const bodySpaceAlignment = rig.bindBodyWorldRotation
+  const alignment = rig.bindBodyWorldRotation
     .clone()
     .multiply(referenceTorso.clone().invert())
     .normalize();
+  const inverseAlignment = alignment.clone().invert();
+  const frameDeltas = new Map<SourceFrameId, THREE.Quaternion>();
+  const solvedRotations = new Map<RetargetBoneId, THREE.Quaternion>();
+
+  for (const [id, live] of Object.entries(observation.frames) as [
+    SourceFrameId,
+    FrameResult,
+  ][]) {
+    const neutral = reference.sourceWorldRotations[id];
+    if (!live?.valid || !neutral) continue;
+    // Conjugate world deltas into the same target space used for limb directions.
+    frameDeltas.set(
+      id,
+      alignment.clone()
+        .multiply(live.rotation)
+        .multiply(neutral.clone().invert())
+        .multiply(inverseAlignment)
+        .normalize(),
+    );
+  }
 
   for (const config of BODY_BONE_CONFIG) {
+    let rotation: THREE.Quaternion;
     if (config.mode === "frame") {
-      const live = validFrame(observation.frames, config.source);
-      const referenceRotation =
-        reference.sourceWorldRotations[config.source];
-      if (!live || !referenceRotation) continue;
-      targets.push({
-        boneId: config.bone,
-        rotation: calibratedTargetWorldRotation(
-          live.rotation,
-          referenceRotation,
-          rig.worldBindRotations[config.bone],
-          config.weight,
-        ),
-      });
-      continue;
-    }
-
-    const result: DirectionResult | undefined =
-      observation.directions[config.source];
-    const bindDirection = rig.worldBindDirections[config.bone];
-    if (!result?.valid || !bindDirection) continue;
-    const mappedDirection = result.direction
-      .clone()
-      .applyQuaternion(bodySpaceAlignment)
-      .normalize();
-    const swing = new THREE.Quaternion().setFromUnitVectors(
-      bindDirection,
-      mappedDirection,
-    );
-    const weightedSwing = new THREE.Quaternion().slerp(
-      swing,
-      config.weight,
-    );
-    targets.push({
-      boneId: config.bone,
-      rotation: weightedSwing
+      const delta = frameDeltas.get(config.source);
+      if (!delta) continue;
+      // Split relative bending across the chain, never attenuate its common world heading.
+      const weighted = delta.clone();
+      if (config.weight !== 1) {
+        const anchorId = config.source === "torso" ? "hips" : "torso";
+        const anchor = frameDeltas.get(anchorId);
+        if (!anchor) continue;
+        weighted.copy(anchor).slerp(delta, config.weight);
+      }
+      rotation = weighted.multiply(rig.worldBindRotations[config.bone]).normalize();
+    } else {
+      const result: DirectionResult | undefined = observation.directions[config.source];
+      const bindDirection = rig.worldBindDirections[config.bone];
+      if (!result?.valid || !bindDirection) continue;
+      const parentId = rig.parents[config.bone];
+      const parentTarget = parentId ? solvedRotations.get(parentId) : undefined;
+      const transport = parentTarget && parentId
+        ? parentTarget.clone()
+          .multiply(rig.worldBindRotations[parentId].clone().invert())
+        : new THREE.Quaternion();
+      const transportedDirection = bindDirection.clone().applyQuaternion(transport).normalize();
+      const mappedDirection = result.direction.clone().applyQuaternion(alignment).normalize();
+      const swing = new THREE.Quaternion().setFromUnitVectors(
+        transportedDirection,
+        mappedDirection,
+      );
+      rotation = new THREE.Quaternion().slerp(swing, config.weight)
+        .multiply(transport)
         .multiply(rig.worldBindRotations[config.bone])
-        .normalize(),
-    });
+        .normalize();
+    }
+    solvedRotations.set(config.bone, rotation);
+    targets.push({ boneId: config.bone, rotation });
   }
 
   return targets;

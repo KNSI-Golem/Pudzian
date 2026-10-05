@@ -3,13 +3,42 @@ import {
   BODY_BONE_CONFIG,
   EXPECTED_BONE_PARENTS,
   LEFT_FINGER_CHAINS,
-  MIXAMO_BONE_NAMES,
+  RETARGET_BONE_IDS,
   RIGHT_FINGER_CHAINS,
+  type FingerChainConfig,
   type RetargetBoneId,
 } from "./boneConfig";
-import { frameFromUpAndForward, FRAME_EPSILON } from "./sourceFrames";
+import type { RigProfile } from "./rigProfiles";
+import {
+  frameFromDirectionAndHinge,
+  frameFromPalm,
+  frameFromUpAndForward,
+  FRAME_EPSILON,
+  hingeFromPalmSpread,
+} from "./sourceFrames";
+
+export type FingerRigChain = Readonly<{
+  bones: FingerChainConfig["bones"];
+  boneOffsets: readonly [
+    THREE.Quaternion,
+    THREE.Quaternion,
+    THREE.Quaternion,
+  ];
+}>;
+
+export type FingerRig = Readonly<
+  Record<"left" | "right", readonly FingerRigChain[]>
+>;
+
+function fingerChains(
+  side: "left" | "right",
+): readonly FingerChainConfig[] {
+  return side === "left" ? LEFT_FINGER_CHAINS : RIGHT_FINGER_CHAINS;
+}
 
 export type RetargetRig = Readonly<{
+  parents: typeof EXPECTED_BONE_PARENTS;
+  fingerRig: FingerRig;
   bones: Readonly<Record<RetargetBoneId, THREE.Bone>>;
   localBindRotations: Readonly<Record<RetargetBoneId, THREE.Quaternion>>;
   worldBindRotations: Readonly<Record<RetargetBoneId, THREE.Quaternion>>;
@@ -59,34 +88,88 @@ function solveBindPalmFrame(
   bones: Readonly<Record<RetargetBoneId, THREE.Bone>>,
   side: "left" | "right",
 ): THREE.Quaternion {
-  const hand = bones[`${side}Hand`];
-  const index = bones[`${side}Index1`];
-  const middle = bones[`${side}Middle1`];
-  const pinky = bones[`${side}Pinky1`];
-  const wristPosition = hand.getWorldPosition(new THREE.Vector3());
-  const palmUp = middle
-    .getWorldPosition(new THREE.Vector3())
-    .sub(wristPosition);
-  const indexPosition = index.getWorldPosition(new THREE.Vector3());
-  const pinkyPosition = pinky.getWorldPosition(new THREE.Vector3());
-  const acrossPalm =
-    side === "left"
-      ? indexPosition.sub(pinkyPosition)
-      : pinkyPosition.sub(indexPosition);
-  const palmNormal = new THREE.Vector3().crossVectors(
-    acrossPalm,
-    palmUp,
-  );
-  const frame = frameFromUpAndForward(palmUp, palmNormal);
+  const wrist = bones[`${side}Hand`].getWorldPosition(new THREE.Vector3());
+  const knuckles = (["Index1", "Middle1", "Ring1", "Pinky1"] as const)
+    .map((finger) => bones[`${side}${finger}`].getWorldPosition(new THREE.Vector3()));
+  const frame = frameFromPalm(wrist, knuckles, side);
   if (!frame.valid) {
     throw new RigValidationError(
-      `Mixamo bind pose does not define a valid ${side} palm frame (${frame.reason})`,
+      `Rig bind pose does not define a valid ${side} palm frame (${frame.reason})`,
     );
   }
   return frame.rotation;
 }
 
-export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
+function buildFingerRig(
+  worldBindDirections: Readonly<
+    Partial<Record<RetargetBoneId, THREE.Vector3>>
+  >,
+  worldBindRotations: Readonly<
+    Record<RetargetBoneId, THREE.Quaternion>
+  >,
+  bindPalmWorldRotations: Readonly<
+    Record<"left" | "right", THREE.Quaternion>
+  >,
+): FingerRig {
+  const result = {} as Record<"left" | "right", FingerRigChain[]>;
+
+  for (const side of ["left", "right"] as const) {
+    const inversePalm = bindPalmWorldRotations[side].clone().invert();
+
+    result[side] = fingerChains(side).map((chain) => {
+      const bindDirections = chain.bones.map((boneId) =>
+        worldBindDirections[boneId]!
+          .clone()
+          .applyQuaternion(inversePalm)
+          .normalize(),
+      );
+      const bindHinge = hingeFromPalmSpread(bindDirections[0]);
+      if (!bindHinge) {
+        throw new RigValidationError(
+          "Rig does not define a stable finger frame for " + chain.bones[0],
+        );
+      }
+
+      const boneOffsets = chain.bones.map((boneId, index) => {
+        const frame = frameFromDirectionAndHinge(
+          bindDirections[index],
+          bindHinge,
+        );
+        if (!frame.valid) {
+          throw new RigValidationError(
+            "Rig does not define an anatomical frame for " + boneId,
+          );
+        }
+
+        return frame.rotation
+          .clone()
+          .invert()
+          .multiply(
+            inversePalm
+              .clone()
+              .multiply(worldBindRotations[boneId])
+              .normalize(),
+          )
+          .normalize();
+      }) as [THREE.Quaternion, THREE.Quaternion, THREE.Quaternion];
+
+      return Object.freeze({
+        bones: chain.bones,
+        boneOffsets: Object.freeze(boneOffsets),
+      });
+    });
+  }
+
+  return Object.freeze({
+    left: Object.freeze(result.left),
+    right: Object.freeze(result.right),
+  });
+}
+
+export function buildRetargetRig(
+  root: THREE.Object3D,
+  profile: RigProfile,
+): RetargetRig {
   root.updateWorldMatrix(true, true);
 
   const candidates = new Map<string, THREE.Bone[]>();
@@ -104,10 +187,9 @@ export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
   const duplicateBones: string[] = [];
   const bones = {} as Record<RetargetBoneId, THREE.Bone>;
 
-  for (const [boneId, targetName] of Object.entries(MIXAMO_BONE_NAMES) as [
-    RetargetBoneId,
-    string,
-  ][]) {
+  const assignedBones = new Set<THREE.Bone>();
+  for (const boneId of RETARGET_BONE_IDS) {
+    const targetName = profile.bones[boneId];
     const matches = candidates.get(normalizeRigName(targetName)) ?? [];
     if (matches.length === 0) {
       missingBones.push(targetName);
@@ -117,6 +199,10 @@ export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
       duplicateBones.push(targetName);
       continue;
     }
+    if (assignedBones.has(matches[0])) {
+      throw new RigValidationError(`Bone ${targetName} is assigned to more than one role`);
+    }
+    assignedBones.add(matches[0]);
     bones[boneId] = matches[0];
   }
 
@@ -130,7 +216,7 @@ export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
       .filter(Boolean)
       .join("; ");
     throw new RigValidationError(
-      `Invalid Mixamo retarget rig (${details})`,
+      `Invalid retarget rig (${details})`,
       missingBones,
       duplicateBones,
     );
@@ -142,13 +228,13 @@ export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
   ) as [RetargetBoneId, RetargetBoneId][]) {
     if (bones[boneId].parent !== bones[parentId]) {
       invalidTopology.push(
-        `${MIXAMO_BONE_NAMES[boneId]} must be a direct child of ${MIXAMO_BONE_NAMES[parentId]}`,
+        `${profile.bones[boneId]} must be a direct child of ${profile.bones[parentId]}`,
       );
     }
   }
   if (invalidTopology.length > 0) {
     throw new RigValidationError(
-      `Invalid Mixamo retarget rig topology (${invalidTopology.join("; ")})`,
+      `Invalid retarget rig topology (${invalidTopology.join("; ")})`,
       [],
       [],
       invalidTopology,
@@ -255,7 +341,7 @@ export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
   const bindBodyFrame = frameFromUpAndForward(bodyUp, bodyForward);
   if (!bindBodyFrame.valid) {
     throw new RigValidationError(
-      `Mixamo bind pose does not define a valid hips-to-shoulders body frame (${bindBodyFrame.reason})`,
+      `Rig bind pose does not define a valid hips-to-shoulders body frame (${bindBodyFrame.reason})`,
     );
   }
   const bindPalmWorldRotations = Object.freeze({
@@ -263,7 +349,15 @@ export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
     right: solveBindPalmFrame(bones, "right"),
   });
 
+  const fingerRig = buildFingerRig(
+    worldBindDirections,
+    worldBindRotations,
+    bindPalmWorldRotations,
+  );
+
   return Object.freeze({
+    fingerRig,
+    parents: EXPECTED_BONE_PARENTS,
     bones: Object.freeze(bones),
     localBindRotations: Object.freeze(localBindRotations),
     worldBindRotations: Object.freeze(worldBindRotations),
