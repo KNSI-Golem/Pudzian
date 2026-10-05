@@ -10,6 +10,7 @@ import {
 import { frameFromUpAndForward, FRAME_EPSILON } from "./sourceFrames";
 
 export type RetargetRig = Readonly<{
+  parents: typeof EXPECTED_BONE_PARENTS;
   bones: Readonly<Record<RetargetBoneId, THREE.Bone>>;
   localBindRotations: Readonly<Record<RetargetBoneId, THREE.Quaternion>>;
   worldBindRotations: Readonly<Record<RetargetBoneId, THREE.Quaternion>>;
@@ -264,6 +265,7 @@ export function buildRetargetRig(root: THREE.Object3D): RetargetRig {
   });
 
   return Object.freeze({
+    parents: EXPECTED_BONE_PARENTS,
     bones: Object.freeze(bones),
     localBindRotations: Object.freeze(localBindRotations),
     worldBindRotations: Object.freeze(worldBindRotations),

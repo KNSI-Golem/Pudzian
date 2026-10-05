@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import type { FallbackPolicy, SmoothingProfile } from "@/types";
+import type { RetargetRig } from "./rig";
+import { worldToParentLocalRotation } from "./retarget";
 import {
   BODY_BONE_CONFIG,
   DEFAULT_FALLBACK_POLICY,
@@ -102,5 +104,42 @@ export class RotationStabilizer {
     state.rotation.slerp(target, alpha).normalize();
     this.states.set(boneId, state);
     return state.rotation.clone();
+  }
+}
+
+// Requested parent targets keep common world motion out of filtered local joints.
+export function applyBoneTargets(
+  rig: RetargetRig,
+  boneOrder: readonly RetargetBoneId[],
+  worldTargets: ReadonlyMap<RetargetBoneId, THREE.Quaternion>,
+  stabilizer: RotationStabilizer,
+  timestampMs: number,
+  deltaMs: number,
+): void {
+  const parentWorld = new THREE.Quaternion();
+  for (const boneId of boneOrder) {
+    const bone = rig.bones[boneId];
+    if (!bone.parent) continue;
+
+    bone.parent.updateWorldMatrix(true, false);
+    const parentId = rig.parents[boneId];
+    const parentTarget = parentId ? worldTargets.get(parentId) : undefined;
+    const worldTarget = worldTargets.get(boneId);
+    const localTarget = worldTarget
+      ? worldToParentLocalRotation(
+          parentTarget ?? bone.parent.getWorldQuaternion(parentWorld),
+          worldTarget,
+        )
+      : undefined;
+    bone.quaternion.copy(stabilizer.step(
+      boneId,
+      bone.quaternion,
+      localTarget,
+      rig.localBindRotations[boneId],
+      timestampMs,
+      deltaMs,
+    ));
+    bone.updateMatrix();
+    bone.updateWorldMatrix(false, false);
   }
 }

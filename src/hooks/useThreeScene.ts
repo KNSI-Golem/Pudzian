@@ -28,7 +28,7 @@ import {
   solveBodyWorldTargets,
   type BoneWorldTarget,
   type HandCalibrationStatus,
-  worldToParentLocalRotation,
+  applyBoneTargets,
   type RetargetReferencePose,
   type RetargetRig,
 } from "@/lib/animate";
@@ -314,37 +314,20 @@ export function useThreeScene(options: UseThreeSceneOptions = {}) {
 
       const reference = referencePoseRef.current;
       if (reference) {
-        const parentWorld = new THREE.Quaternion();
+        const worldTargets = new Map<keyof RetargetRig["bones"], THREE.Quaternion>();
         const applyTargets = (
           boneOrder: readonly (keyof RetargetRig["bones"])[],
           targets: readonly BoneWorldTarget[],
         ) => {
-          const targetsByBone = new Map(
-            targets.map((target) => [target.boneId, target]),
+          for (const target of targets) worldTargets.set(target.boneId, target.rotation);
+          applyBoneTargets(
+            rig,
+            boneOrder,
+            worldTargets,
+            stabilizerRef.current,
+            timestampMs,
+            deltaMs,
           );
-          for (const boneId of boneOrder) {
-            const bone = rig.bones[boneId];
-            if (!bone.parent) continue;
-
-            bone.parent.updateWorldMatrix(true, false);
-            bone.parent.getWorldQuaternion(parentWorld);
-            const worldTarget = targetsByBone.get(boneId);
-            const localTarget = worldTarget
-              ? worldToParentLocalRotation(parentWorld, worldTarget.rotation)
-              : undefined;
-            bone.quaternion.copy(
-              stabilizerRef.current.step(
-                boneId,
-                bone.quaternion,
-                localTarget,
-                rig.localBindRotations[boneId],
-                timestampMs,
-                deltaMs,
-              ),
-            );
-            bone.updateMatrix();
-            bone.updateWorldMatrix(false, false);
-          }
         };
         const bodyTargets = solveBodyWorldTargets(
           rig,
